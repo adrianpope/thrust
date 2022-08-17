@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file sequence.inl
- *  \brief Inline file for sequence.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/sequence.h>
@@ -26,11 +23,10 @@
 #include <thrust/system/detail/generic/sequence.h>
 #include <thrust/system/detail/adl/sequence.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename ForwardIterator>
 __host__ __device__
   void sequence(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -42,7 +38,7 @@ __host__ __device__
 } // end sequence()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename ForwardIterator, typename T>
 __host__ __device__
   void sequence(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -55,7 +51,7 @@ __host__ __device__
 } // end sequence()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename ForwardIterator, typename T>
 __host__ __device__
   void sequence(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -114,5 +110,5 @@ template<typename ForwardIterator, typename T>
 } // end sequence()
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

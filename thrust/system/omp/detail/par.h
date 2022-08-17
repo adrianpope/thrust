@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2018 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,11 +17,10 @@
 #pragma once
 
 #include <thrust/detail/config.h>
+#include <thrust/detail/allocator_aware_execution_policy.h>
 #include <thrust/system/omp/detail/execution_policy.h>
-#include <thrust/detail/execute_with_allocator.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -30,16 +29,12 @@ namespace detail
 {
 
 
-struct par_t : thrust::system::omp::detail::execution_policy<par_t>
+struct par_t : thrust::system::omp::detail::execution_policy<par_t>,
+  thrust::detail::allocator_aware_execution_policy<
+    thrust::system::omp::detail::execution_policy>
 {
-  par_t() : thrust::system::omp::detail::execution_policy<par_t>() {}
-
-  template<typename Allocator>
-    thrust::detail::execute_with_allocator<Allocator, thrust::system::omp::detail::execution_policy>
-      operator()(Allocator &alloc) const
-  {
-    return thrust::detail::execute_with_allocator<Allocator, thrust::system::omp::detail::execution_policy>(alloc);
-  }
+  __host__ __device__
+  constexpr par_t() : thrust::system::omp::detail::execution_policy<par_t>() {}
 };
 
 
@@ -62,5 +57,5 @@ using thrust::system::omp::par;
 
 
 } // end omp
-} // end thrust
+THRUST_NAMESPACE_END
 

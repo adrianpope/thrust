@@ -14,7 +14,6 @@ template<typename Vector>
 void TestIsPartitionedSimple(void)
 {
   typedef typename Vector::value_type T;
-  typedef typename Vector::iterator Iterator;
 
   Vector v(4);
   v[0] = 1; v[1] = 1; v[2] = 1; v[3] = 0;
@@ -59,11 +58,11 @@ void TestIsPartitioned(void)
 
   ASSERT_EQUAL(true, thrust::is_partitioned(v.begin(), v.end(), is_even<T>()));
 }
-DECLARE_VECTOR_UNITTEST(TestIsPartitioned);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestIsPartitioned);
 
 
 template<typename InputIterator, typename Predicate>
-bool is_partitioned(my_system &system, InputIterator first, InputIterator, Predicate)
+bool is_partitioned(my_system &system, InputIterator /*first*/, InputIterator, Predicate)
 {
   system.validate_dispatch();
   return false;

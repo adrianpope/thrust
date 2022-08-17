@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2018 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,12 +19,14 @@
 #include <thrust/iterator/detail/normal_iterator.h>
 #include <thrust/detail/execution_policy.h>
 #include <thrust/detail/allocator/allocator_traits.h>
+#include <thrust/detail/config.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
+
+struct copy_allocator_t {};
 
 // XXX parameter T is redundant with parameter Alloc
 template<typename T, typename Alloc>
@@ -40,47 +42,55 @@ template<typename T, typename Alloc>
     typedef typename alloc_traits::const_pointer       const_pointer;
     typedef typename alloc_traits::size_type           size_type;
     typedef typename alloc_traits::difference_type     difference_type;
-
-    // XXX we should bring reference & const_reference into allocator_traits
-    //     at the moment, it's unclear how -- we have nothing analogous to
-    //     rebind_pointer for references
-    //     we either need to add reference_traits or extend the existing
-    //     pointer_traits to support wrapped references
-    typedef typename Alloc::reference                  reference;
-    typedef typename Alloc::const_reference            const_reference;
+    typedef typename alloc_traits::reference           reference;
+    typedef typename alloc_traits::const_reference     const_reference;
 
     typedef thrust::detail::normal_iterator<pointer>       iterator;
     typedef thrust::detail::normal_iterator<const_pointer> const_iterator;
 
-    __thrust_hd_warning_disable__
+    __thrust_exec_check_disable__
     __host__ __device__
     explicit contiguous_storage(const allocator_type &alloc = allocator_type());
 
-    __thrust_hd_warning_disable__
+    __thrust_exec_check_disable__
     __host__ __device__
     explicit contiguous_storage(size_type n, const allocator_type &alloc = allocator_type());
 
-    __thrust_hd_warning_disable__
+    __thrust_exec_check_disable__
     __host__ __device__
-    ~contiguous_storage(void);
+    explicit contiguous_storage(copy_allocator_t, const contiguous_storage &other);
+
+    __thrust_exec_check_disable__
+    __host__ __device__
+    explicit contiguous_storage(copy_allocator_t, const contiguous_storage &other, size_type n);
+
+    __thrust_exec_check_disable__
+    __host__ __device__
+    ~contiguous_storage();
 
     __host__ __device__
-    size_type size(void) const;
+    size_type size() const;
 
     __host__ __device__
-    size_type max_size(void) const;
+    size_type max_size() const;
 
     __host__ __device__
-    iterator begin(void);
-    
-    __host__ __device__
-    const_iterator begin(void) const;
+    pointer data();
 
     __host__ __device__
-    iterator end(void);
+    const_pointer data() const;
 
     __host__ __device__
-    const_iterator end(void) const;
+    iterator begin();
+
+    __host__ __device__
+    const_iterator begin() const;
+
+    __host__ __device__
+    iterator end();
+
+    __host__ __device__
+    const_iterator end() const;
 
     __host__ __device__
     reference operator[](size_type n);
@@ -89,14 +99,14 @@ template<typename T, typename Alloc>
     const_reference operator[](size_type n) const;
 
     __host__ __device__
-    allocator_type get_allocator(void) const;
+    allocator_type get_allocator() const;
 
     // note that allocate does *not* automatically call deallocate
     __host__ __device__
     void allocate(size_type n);
 
     __host__ __device__
-    void deallocate(void);
+    void deallocate();
 
     __host__ __device__
     void swap(contiguous_storage &x);
@@ -132,16 +142,85 @@ template<typename T, typename Alloc>
     __host__ __device__
     void destroy(iterator first, iterator last);
 
+    __host__ __device__
+    void deallocate_on_allocator_mismatch(const contiguous_storage &other);
+
+    __host__ __device__
+    void destroy_on_allocator_mismatch(const contiguous_storage &other,
+        iterator first, iterator last);
+
+    __host__ __device__
+    void set_allocator(const allocator_type &alloc);
+
+    __host__ __device__
+    bool is_allocator_not_equal(const allocator_type &alloc) const;
+
+    __host__ __device__
+    bool is_allocator_not_equal(const contiguous_storage &other) const;
+
+    __host__ __device__
+    void propagate_allocator(const contiguous_storage &other);
+
+#if THRUST_CPP_DIALECT >= 2011
+    __host__ __device__
+    void propagate_allocator(contiguous_storage &other);
+
+    // allow move assignment for a sane implementation of allocator propagation
+    // on move assignment
+    __host__ __device__
+    contiguous_storage &operator=(contiguous_storage &&other);
+#endif
+
   private:
     // XXX we could inherit from this to take advantage of empty base class optimization
     allocator_type m_allocator;
 
     iterator m_begin;
-    
+
     size_type m_size;
 
     // disallow assignment
     contiguous_storage &operator=(const contiguous_storage &x);
+
+    __host__ __device__
+    void swap_allocators(true_type, const allocator_type &);
+
+    __host__ __device__
+    void swap_allocators(false_type, allocator_type &);
+
+    __host__ __device__
+    bool is_allocator_not_equal_dispatch(true_type, const allocator_type &) const;
+
+    __host__ __device__
+    bool is_allocator_not_equal_dispatch(false_type, const allocator_type &) const;
+
+    __host__ __device__
+    void deallocate_on_allocator_mismatch_dispatch(true_type, const contiguous_storage &other);
+
+    __host__ __device__
+    void deallocate_on_allocator_mismatch_dispatch(false_type, const contiguous_storage &other);
+
+    __host__ __device__
+    void destroy_on_allocator_mismatch_dispatch(true_type, const contiguous_storage &other,
+        iterator first, iterator last);
+
+    __host__ __device__
+    void destroy_on_allocator_mismatch_dispatch(false_type, const contiguous_storage &other,
+        iterator first, iterator last);
+
+    __host__ __device__
+    void propagate_allocator_dispatch(true_type, const contiguous_storage &other);
+
+    __host__ __device__
+    void propagate_allocator_dispatch(false_type, const contiguous_storage &other);
+
+#if THRUST_CPP_DIALECT >= 2011
+    __host__ __device__
+    void propagate_allocator_dispatch(true_type, contiguous_storage &other);
+
+    __host__ __device__
+    void propagate_allocator_dispatch(false_type, contiguous_storage &other);
+#endif
 }; // end contiguous_storage
 
 } // end detail
@@ -150,7 +229,7 @@ template<typename T, typename Alloc>
 __host__ __device__
 void swap(detail::contiguous_storage<T,Alloc> &lhs, detail::contiguous_storage<T,Alloc> &rhs);
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/contiguous_storage.inl>
 

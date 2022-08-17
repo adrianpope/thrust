@@ -25,9 +25,7 @@
 #include <thrust/detail/execution_policy.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup reordering
  *  \ingroup algorithms
@@ -48,7 +46,7 @@ namespace thrust
  *
  *  Note that the relative order of elements in the two reordered sequences is not
  *  necessarily the same as it was in the original sequence. A different algorithm,
- *  \ref stable_partition, does guarantee to preserve the relative order.
+ *  \p stable_partition, does guarantee to preserve the relative order.
  *
  *  The algorithm's execution is parallelized as determined by \p exec.
  *
@@ -61,10 +59,10 @@ namespace thrust
  *          the sequence of the elements which do not satisfy \p pred.
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
- *  \tparam ForwardIterator is a model of <a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Forward Iterator</a>,
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
  *          and \p ForwardIterator's \c value_type is convertible to \p Predicate's \c argument_type,
  *          and \p ForwardIterator is mutable.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  The following code snippet demonstrates how to use \p partition to reorder a
  *  sequence so that even numbers precede odd numbers using the \p thrust::host execution policy for parallelization:
@@ -90,7 +88,7 @@ namespace thrust
  *  // A is now {2, 4, 6, 8, 10, 1, 3, 5, 7, 9}
  *  \endcode
  *
- *  \see http://www.sgi.com/tech/stl/partition.html
+ *  \see https://en.cppreference.com/w/cpp/algorithm/partition
  *  \see \p stable_partition
  *  \see \p partition_copy
  */
@@ -114,7 +112,7 @@ __host__ __device__
  *
  *  Note that the relative order of elements in the two reordered sequences is not
  *  necessarily the same as it was in the original sequence. A different algorithm,
- *  \ref stable_partition, does guarantee to preserve the relative order.
+ *  \p stable_partition, does guarantee to preserve the relative order.
  *
  *  \param first The beginning of the sequence to reorder.
  *  \param last The end of the sequence to reorder.
@@ -123,10 +121,10 @@ __host__ __device__
  *  \return An iterator referring to the first element of the second partition, that is,
  *          the sequence of the elements which do not satisfy \p pred.
  *
- *  \tparam ForwardIterator is a model of <a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Forward Iterator</a>,
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
  *          and \p ForwardIterator's \c value_type is convertible to \p Predicate's \c argument_type,
  *          and \p ForwardIterator is mutable.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  The following code snippet demonstrates how to use \p partition to reorder a
  *  sequence so that even numbers precede odd numbers.
@@ -150,7 +148,7 @@ __host__ __device__
  *  // A is now {2, 4, 6, 8, 10, 1, 3, 5, 7, 9}
  *  \endcode
  *
- *  \see http://www.sgi.com/tech/stl/partition.html
+ *  \see https://en.cppreference.com/w/cpp/algorithm/partition
  *  \see \p stable_partition
  *  \see \p partition_copy
  */
@@ -172,7 +170,7 @@ template<typename ForwardIterator,
  *
  *  Note that the relative order of elements in the two reordered sequences is not
  *  necessarily the same as it was in the original sequence. A different algorithm,
- *  \ref stable_partition, does guarantee to preserve the relative order.
+ *  \p stable_partition, does guarantee to preserve the relative order.
  *
  *  The algorithm's execution is parallelized as determined by \p exec.
  *
@@ -186,11 +184,11 @@ template<typename ForwardIterator,
  *          the sequence of the elements whose stencil elements do not satisfy \p pred.
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
- *  \tparam ForwardIterator is a model of <a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Forward Iterator</a>,
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
  *          and \p ForwardIterator is mutable.
- *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p Predicate's \c argument_type.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The ranges <tt>[first,last)</tt> and <tt>[stencil, stencil + (last - first))</tt> shall not overlap.
  *
@@ -218,7 +216,7 @@ template<typename ForwardIterator,
  *  // S is unmodified
  *  \endcode
  *
- *  \see http://www.sgi.com/tech/stl/partition.html
+ *  \see https://en.cppreference.com/w/cpp/algorithm/partition
  *  \see \p stable_partition
  *  \see \p partition_copy
  */
@@ -245,7 +243,7 @@ __host__ __device__
  *
  *  Note that the relative order of elements in the two reordered sequences is not
  *  necessarily the same as it was in the original sequence. A different algorithm,
- *  \ref stable_partition, does guarantee to preserve the relative order.
+ *  \p stable_partition, does guarantee to preserve the relative order.
  *
  *  \param first The beginning of the sequence to reorder.
  *  \param last The end of the sequence to reorder.
@@ -255,11 +253,11 @@ __host__ __device__
  *  \return An iterator referring to the first element of the second partition, that is,
  *          the sequence of the elements whose stencil elements do not satisfy \p pred.
  *
- *  \tparam ForwardIterator is a model of <a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Forward Iterator</a>,
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
  *          and \p ForwardIterator is mutable.
- *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p Predicate's \c argument_type.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The ranges <tt>[first,last)</tt> and <tt>[stencil, stencil + (last - first))</tt> shall not overlap.
  *
@@ -286,7 +284,7 @@ __host__ __device__
  *  // S is unmodified
  *  \endcode
  *
- *  \see http://www.sgi.com/tech/stl/partition.html
+ *  \see https://en.cppreference.com/w/cpp/algorithm/partition
  *  \see \p stable_partition
  *  \see \p partition_copy
  */
@@ -299,7 +297,7 @@ template<typename ForwardIterator,
                             Predicate pred);
 
 
-/*! \p partition_copy differs from \ref partition only in that the reordered
+/*! \p partition_copy differs from \p partition only in that the reordered
  *  sequence is written to difference output sequences, rather than in place.
  *
  *  \p partition_copy copies the elements <tt>[first, last)</tt> based on the
@@ -321,12 +319,12 @@ template<typename ForwardIterator,
  *          \p out_false.
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
- *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p Predicate's \c argument_type and \p InputIterator's \c value_type
  *          is convertible to \p OutputIterator1 and \p OutputIterator2's \c value_types.
- *  \tparam OutputIterator1 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam OutputIterator2 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam OutputIterator1 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam OutputIterator2 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The input range shall not overlap with either output range.
  *
@@ -360,7 +358,7 @@ template<typename ForwardIterator,
  *
  *  \note The relative order of elements in the two reordered sequences is not
  *  necessarily the same as it was in the original sequence. A different algorithm,
- *  \ref stable_partition_copy, does guarantee to preserve the relative order.
+ *  \p stable_partition_copy, does guarantee to preserve the relative order.
  *
  *  \see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2569.pdf
  *  \see \p stable_partition_copy
@@ -381,7 +379,7 @@ __host__ __device__
                    Predicate pred);
 
 
-/*! \p partition_copy differs from \ref partition only in that the reordered
+/*! \p partition_copy differs from \p partition only in that the reordered
  *  sequence is written to difference output sequences, rather than in place.
  *
  *  \p partition_copy copies the elements <tt>[first, last)</tt> based on the
@@ -399,12 +397,12 @@ __host__ __device__
  *          at \p out_true and <tt>p.second</tt> is the end of the output range beginning at
  *          \p out_false.
  *
- *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p Predicate's \c argument_type and \p InputIterator's \c value_type
  *          is convertible to \p OutputIterator1 and \p OutputIterator2's \c value_types.
- *  \tparam OutputIterator1 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam OutputIterator2 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam OutputIterator1 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam OutputIterator2 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The input range shall not overlap with either output range.
  *
@@ -437,7 +435,7 @@ __host__ __device__
  *
  *  \note The relative order of elements in the two reordered sequences is not
  *  necessarily the same as it was in the original sequence. A different algorithm,
- *  \ref stable_partition_copy, does guarantee to preserve the relative order.
+ *  \p stable_partition_copy, does guarantee to preserve the relative order.
  *
  *  \see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2569.pdf
  *  \see \p stable_partition_copy
@@ -455,7 +453,7 @@ template<typename InputIterator,
                    Predicate pred);
 
 
-/*! \p partition_copy differs from \ref partition only in that the reordered
+/*! \p partition_copy differs from \p partition only in that the reordered
  *  sequence is written to difference output sequences, rather than in place.
  *
  *  \p partition_copy copies the elements <tt>[first, last)</tt> based on the
@@ -479,13 +477,13 @@ template<typename InputIterator,
  *          \p out_false.
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
- *  \tparam InputIterator1 is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator1 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p OutputIterator1 and \p OutputIterator2's \c value_types.
- *  \tparam InputIterator2 is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator2 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator2's \c value_type is convertible to \p Predicate's \c argument_type.
- *  \tparam OutputIterator1 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam OutputIterator2 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam OutputIterator1 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam OutputIterator2 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The input ranges shall not overlap with either output range.
  *
@@ -514,7 +512,7 @@ template<typename InputIterator,
  *
  *  \note The relative order of elements in the two reordered sequences is not
  *  necessarily the same as it was in the original sequence. A different algorithm,
- *  \ref stable_partition_copy, does guarantee to preserve the relative order.
+ *  \p stable_partition_copy, does guarantee to preserve the relative order.
  *
  *  \see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2569.pdf
  *  \see \p stable_partition_copy
@@ -537,7 +535,7 @@ __host__ __device__
                    Predicate pred);
 
 
-/*! \p partition_copy differs from \ref partition only in that the reordered
+/*! \p partition_copy differs from \p partition only in that the reordered
  *  sequence is written to difference output sequences, rather than in place.
  *
  *  \p partition_copy copies the elements <tt>[first, last)</tt> based on the
@@ -557,13 +555,13 @@ __host__ __device__
  *          at \p out_true and <tt>p.second</tt> is the end of the output range beginning at
  *          \p out_false.
  *
- *  \tparam InputIterator1 is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator1 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p OutputIterator1 and \p OutputIterator2's \c value_types.
- *  \tparam InputIterator2 is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator2 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator2's \c value_type is convertible to \p Predicate's \c argument_type.
- *  \tparam OutputIterator1 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam OutputIterator2 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam OutputIterator1 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam OutputIterator2 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The input ranges shall not overlap with either output range.
  *
@@ -590,7 +588,7 @@ __host__ __device__
  *
  *  \note The relative order of elements in the two reordered sequences is not
  *  necessarily the same as it was in the original sequence. A different algorithm,
- *  \ref stable_partition_copy, does guarantee to preserve the relative order.
+ *  \p stable_partition_copy, does guarantee to preserve the relative order.
  *
  *  \see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2569.pdf
  *  \see \p stable_partition_copy
@@ -610,7 +608,7 @@ template<typename InputIterator1,
                    Predicate pred);
 
 
-/*! \p stable_partition is much like \ref partition : it reorders the elements in the
+/*! \p stable_partition is much like \p partition : it reorders the elements in the
  *  range <tt>[first, last)</tt> based on the function object \p pred, such that all of
  *  the elements that satisfy \p pred precede all of the elements that fail to satisfy
  *  it. The postcondition is that, for some iterator \p middle in the range
@@ -618,7 +616,7 @@ template<typename InputIterator1,
  *  range <tt>[first,middle)</tt> and \c false for every iterator \c i in the range
  *  <tt>[middle, last)</tt>. The return value of \p stable_partition is \c middle.
  *
- *  \p stable_partition differs from \ref partition in that \p stable_partition is
+ *  \p stable_partition differs from \p partition in that \p stable_partition is
  *  guaranteed to preserve relative order. That is, if \c x and \c y are elements in
  *  <tt>[first, last)</tt>, and \c stencil_x and \c stencil_y are the stencil elements
  *  in corresponding positions within <tt>[stencil, stencil + (last - first))</tt>,
@@ -636,10 +634,10 @@ template<typename InputIterator1,
  *          the sequence of the elements which do not satisfy pred.
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
- *  \tparam ForwardIterator is a model of <a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Forward Iterator</a>,
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
  *          and \p ForwardIterator's \c value_type is convertible to \p Predicate's \c argument_type,
  *          and \p ForwardIterator is mutable.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  The following code snippet demonstrates how to use \p stable_partition to reorder a
  *  sequence so that even numbers precede odd numbers using the \p thrust::host execution policy for parallelization:
@@ -665,7 +663,7 @@ template<typename InputIterator1,
  *  // A is now {2, 4, 6, 8, 10, 1, 3, 5, 7, 9}
  *  \endcode
  *
- *  \see http://www.sgi.com/tech/stl/stable_partition.html
+ *  \see https://en.cppreference.com/w/cpp/algorithm/stable_partition
  *  \see \p partition
  *  \see \p stable_partition_copy
  */
@@ -679,7 +677,7 @@ __host__ __device__
                                    Predicate pred);
 
 
-/*! \p stable_partition is much like \ref partition : it reorders the elements in the
+/*! \p stable_partition is much like \p partition : it reorders the elements in the
  *  range <tt>[first, last)</tt> based on the function object \p pred, such that all of
  *  the elements that satisfy \p pred precede all of the elements that fail to satisfy
  *  it. The postcondition is that, for some iterator \p middle in the range
@@ -687,7 +685,7 @@ __host__ __device__
  *  range <tt>[first,middle)</tt> and \c false for every iterator \c i in the range
  *  <tt>[middle, last)</tt>. The return value of \p stable_partition is \c middle.
  *
- *  \p stable_partition differs from \ref partition in that \p stable_partition is
+ *  \p stable_partition differs from \p partition in that \p stable_partition is
  *  guaranteed to preserve relative order. That is, if \c x and \c y are elements in
  *  <tt>[first, last)</tt>, and \c stencil_x and \c stencil_y are the stencil elements
  *  in corresponding positions within <tt>[stencil, stencil + (last - first))</tt>,
@@ -701,10 +699,10 @@ __host__ __device__
  *  \return An iterator referring to the first element of the second partition, that is,
  *          the sequence of the elements which do not satisfy pred.
  *
- *  \tparam ForwardIterator is a model of <a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Forward Iterator</a>,
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
  *          and \p ForwardIterator's \c value_type is convertible to \p Predicate's \c argument_type,
  *          and \p ForwardIterator is mutable.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  The following code snippet demonstrates how to use \p stable_partition to reorder a
  *  sequence so that even numbers precede odd numbers.
@@ -728,7 +726,7 @@ __host__ __device__
  *  // A is now {2, 4, 6, 8, 10, 1, 3, 5, 7, 9}
  *  \endcode
  *
- *  \see http://www.sgi.com/tech/stl/stable_partition.html
+ *  \see https://en.cppreference.com/w/cpp/algorithm/stable_partition
  *  \see \p partition
  *  \see \p stable_partition_copy
  */
@@ -749,7 +747,7 @@ template<typename ForwardIterator,
  *  in the range <tt>[stencil + (middle - first), stencil + (last - first))</tt>.
  *  The return value of \p stable_partition is \c middle.
  *
- *  \p stable_partition differs from \ref partition in that \p stable_partition is
+ *  \p stable_partition differs from \p partition in that \p stable_partition is
  *  guaranteed to preserve relative order. That is, if \c x and \c y are elements in
  *  <tt>[first, last)</tt>, such that <tt>pred(x) == pred(y)</tt>, and if \c x precedes
  *  \c y, then it will still be true after \p stable_partition that \c x precedes \c y.
@@ -766,11 +764,11 @@ template<typename ForwardIterator,
  *          the sequence of the elements whose stencil elements do not satisfy \p pred.
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
- *  \tparam ForwardIterator is a model of <a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Forward Iterator</a>,
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
  *          and \p ForwardIterator is mutable.
- *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p Predicate's \c argument_type.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The range <tt>[first, last)</tt> shall not overlap with the range <tt>[stencil, stencil + (last - first))</tt>.
  *
@@ -798,7 +796,7 @@ template<typename ForwardIterator,
  *  // S is unmodified
  *  \endcode
  *
- *  \see http://www.sgi.com/tech/stl/stable_partition.html
+ *  \see https://en.cppreference.com/w/cpp/algorithm/stable_partition
  *  \see \p partition
  *  \see \p stable_partition_copy
  */
@@ -824,7 +822,7 @@ __host__ __device__
  *  in the range <tt>[stencil + (middle - first), stencil + (last - first))</tt>.
  *  The return value of \p stable_partition is \c middle.
  *
- *  \p stable_partition differs from \ref partition in that \p stable_partition is
+ *  \p stable_partition differs from \p partition in that \p stable_partition is
  *  guaranteed to preserve relative order. That is, if \c x and \c y are elements in
  *  <tt>[first, last)</tt>, such that <tt>pred(x) == pred(y)</tt>, and if \c x precedes
  *  \c y, then it will still be true after \p stable_partition that \c x precedes \c y.
@@ -837,11 +835,11 @@ __host__ __device__
  *  \return An iterator referring to the first element of the second partition, that is,
  *          the sequence of the elements whose stencil elements do not satisfy \p pred.
  *
- *  \tparam ForwardIterator is a model of <a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Forward Iterator</a>,
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
  *          and \p ForwardIterator is mutable.
- *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p Predicate's \c argument_type.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The range <tt>[first, last)</tt> shall not overlap with the range <tt>[stencil, stencil + (last - first))</tt>.
  *
@@ -868,7 +866,7 @@ __host__ __device__
  *  // S is unmodified
  *  \endcode
  *
- *  \see http://www.sgi.com/tech/stl/stable_partition.html
+ *  \see https://en.cppreference.com/w/cpp/algorithm/stable_partition
  *  \see \p partition
  *  \see \p stable_partition_copy
  */
@@ -881,7 +879,7 @@ template<typename ForwardIterator,
                                    Predicate pred);
 
 
-/*! \p stable_partition_copy differs from \ref stable_partition only in that the reordered
+/*! \p stable_partition_copy differs from \p stable_partition only in that the reordered
  *  sequence is written to different output sequences, rather than in place.
  *
  *  \p stable_partition_copy copies the elements <tt>[first, last)</tt> based on the
@@ -889,7 +887,7 @@ template<typename ForwardIterator,
  *  to the range beginning at \p out_true and all the elements that fail to satisfy it
  *  are copied to the range beginning at \p out_false.
  *
- *  \p stable_partition_copy differs from \ref partition_copy in that
+ *  \p stable_partition_copy differs from \p partition_copy in that
  *  \p stable_partition_copy is guaranteed to preserve relative order. That is, if
  *  \c x and \c y are elements in <tt>[first, last)</tt>, such that
  *  <tt>pred(x) == pred(y)</tt>, and if \c x precedes \c y, then it will still be true
@@ -909,12 +907,12 @@ template<typename ForwardIterator,
  *          \p out_false.
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
- *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p Predicate's \c argument_type and \p InputIterator's \c value_type
  *          is convertible to \p OutputIterator1 and \p OutputIterator2's \c value_types.
- *  \tparam OutputIterator1 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam OutputIterator2 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam OutputIterator1 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam OutputIterator2 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The input ranges shall not overlap with either output range.
  *
@@ -965,7 +963,7 @@ __host__ __device__
                           Predicate pred);
 
 
-/*! \p stable_partition_copy differs from \ref stable_partition only in that the reordered
+/*! \p stable_partition_copy differs from \p stable_partition only in that the reordered
  *  sequence is written to different output sequences, rather than in place.
  *
  *  \p stable_partition_copy copies the elements <tt>[first, last)</tt> based on the
@@ -973,7 +971,7 @@ __host__ __device__
  *  to the range beginning at \p out_true and all the elements that fail to satisfy it
  *  are copied to the range beginning at \p out_false.
  *
- *  \p stable_partition_copy differs from \ref partition_copy in that
+ *  \p stable_partition_copy differs from \p partition_copy in that
  *  \p stable_partition_copy is guaranteed to preserve relative order. That is, if
  *  \c x and \c y are elements in <tt>[first, last)</tt>, such that
  *  <tt>pred(x) == pred(y)</tt>, and if \c x precedes \c y, then it will still be true
@@ -989,12 +987,12 @@ __host__ __device__
  *          at \p out_true and <tt>p.second</tt> is the end of the output range beginning at
  *          \p out_false.
  *
- *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p Predicate's \c argument_type and \p InputIterator's \c value_type
  *          is convertible to \p OutputIterator1 and \p OutputIterator2's \c value_types.
- *  \tparam OutputIterator1 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam OutputIterator2 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam OutputIterator1 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam OutputIterator2 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The input ranges shall not overlap with either output range.
  *
@@ -1041,7 +1039,7 @@ template<typename InputIterator,
                           Predicate pred);
 
 
-/*! \p stable_partition_copy differs from \ref stable_partition only in that the reordered
+/*! \p stable_partition_copy differs from \p stable_partition only in that the reordered
  *  sequence is written to different output sequences, rather than in place.
  *
  *  \p stable_partition_copy copies the elements <tt>[first, last)</tt> based on the
@@ -1050,7 +1048,7 @@ template<typename InputIterator,
  *  and all the elements whose stencil element fails to satisfy it are copied to the range beginning
  *  at \p out_false.
  *
- *  \p stable_partition_copy differs from \ref partition_copy in that
+ *  \p stable_partition_copy differs from \p partition_copy in that
  *  \p stable_partition_copy is guaranteed to preserve relative order. That is, if
  *  \c x and \c y are elements in <tt>[first, last)</tt>, such that
  *  <tt>pred(x) == pred(y)</tt>, and if \c x precedes \c y, then it will still be true
@@ -1071,13 +1069,13 @@ template<typename InputIterator,
  *          \p out_false.
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
- *  \tparam InputIterator1 is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator1 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p OutputIterator1 and \p OutputIterator2's \c value_types.
- *  \tparam InputIterator2 is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator2 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator2's \c value_type is convertible to \p Predicate's \c argument_type.
- *  \tparam OutputIterator1 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam OutputIterator2 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam OutputIterator1 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam OutputIterator2 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The input ranges shall not overlap with either output range.
  *
@@ -1124,7 +1122,7 @@ __host__ __device__
                           Predicate pred);
 
 
-/*! \p stable_partition_copy differs from \ref stable_partition only in that the reordered
+/*! \p stable_partition_copy differs from \p stable_partition only in that the reordered
  *  sequence is written to different output sequences, rather than in place.
  *
  *  \p stable_partition_copy copies the elements <tt>[first, last)</tt> based on the
@@ -1133,7 +1131,7 @@ __host__ __device__
  *  and all the elements whose stencil element fails to satisfy it are copied to the range beginning
  *  at \p out_false.
  *
- *  \p stable_partition_copy differs from \ref partition_copy in that
+ *  \p stable_partition_copy differs from \p partition_copy in that
  *  \p stable_partition_copy is guaranteed to preserve relative order. That is, if
  *  \c x and \c y are elements in <tt>[first, last)</tt>, such that
  *  <tt>pred(x) == pred(y)</tt>, and if \c x precedes \c y, then it will still be true
@@ -1150,13 +1148,13 @@ __host__ __device__
  *          at \p out_true and <tt>p.second</tt> is the end of the output range beginning at
  *          \p out_false.
  *
- *  \tparam InputIterator1 is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator1 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p OutputIterator1 and \p OutputIterator2's \c value_types.
- *  \tparam InputIterator2 is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator2 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator">Input Iterator</a>,
  *          and \p InputIterator2's \c value_type is convertible to \p Predicate's \c argument_type.
- *  \tparam OutputIterator1 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam OutputIterator2 is a model of <a href="http://www.sgi.com/tech/stl/OutputIterator.html">Output Iterator</a>.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam OutputIterator1 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam OutputIterator2 is a model of <a href="https://en.cppreference.com/w/cpp/iterator/output_iterator">Output Iterator</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The input ranges shall not overlap with either output range.
  *
@@ -1226,9 +1224,9 @@ template<typename InputIterator1,
  *          and <tt>none_of(mid, last, pred)</tt> are both true.
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
- *  \tparam ForwardIterator is a model of <a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Forward Iterator</a>,
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
  *          and \p ForwardIterator's \c value_type is convertible to \p Predicate's \c argument_type.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The range <tt>[first, last)</tt> shall be partitioned by \p pred.
  *
@@ -1279,9 +1277,9 @@ __host__ __device__
  *  \return An iterator \c mid such that <tt>all_of(first, mid, pred)</tt>
  *          and <tt>none_of(mid, last, pred)</tt> are both true.
  *
- *  \tparam ForwardIterator is a model of <a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Forward Iterator</a>,
+ *  \tparam ForwardIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Forward Iterator</a>,
  *          and \p ForwardIterator's \c value_type is convertible to \p Predicate's \c argument_type.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *
  *  \pre The range <tt>[first, last)</tt> shall be partitioned by \p pred.
  *
@@ -1345,9 +1343,9 @@ template<typename ForwardIterator, typename Predicate>
  *          to \p pred, or if <tt>[first, last)</tt> is empty. \c false, otherwise.
  *
  *  \tparam DerivedPolicy The name of the derived execution policy.
- *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p Predicate's \c argument_type.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *  
  *  \code
  *  #include <thrust/partition.h>
@@ -1395,9 +1393,9 @@ __host__ __device__
  *  \return \c true if the range <tt>[first, last)</tt> is partitioned with respect
  *          to \p pred, or if <tt>[first, last)</tt> is empty. \c false, otherwise.
  *
- *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Input Iterator</a>,
+ *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/forward_iterator">Input Iterator</a>,
  *          and \p InputIterator's \c value_type is convertible to \p Predicate's \c argument_type.
- *  \tparam Predicate is a model of <a href="http://www.sgi.com/tech/stl/Predicate.html">Predicate</a>.
+ *  \tparam Predicate is a model of <a href="https://en.cppreference.com/w/cpp/concepts/predicate">Predicate</a>.
  *  
  *  \code
  *  #include <thrust/partition.h>
@@ -1432,8 +1430,7 @@ template<typename InputIterator, typename Predicate>
  *  \} // end reductions
  */
 
-
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/partition.inl>
 

@@ -16,11 +16,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/iterator_adaptor.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // forward declaration of constant_iterator
 template<typename,typename,typename> class constant_iterator;
@@ -45,7 +46,7 @@ template<typename Value,
   // the incrementable type is int unless otherwise specified
   typedef typename thrust::detail::ia_dflt_help<
     Incrementable,
-    thrust::detail::identity_<int>
+    thrust::detail::identity_<thrust::detail::intmax_t>
   >::type incrementable;
 
   typedef typename thrust::counting_iterator<
@@ -66,5 +67,5 @@ template<typename Value,
 
 } // end detail
   
-} // end thrust
+THRUST_NAMESPACE_END
 

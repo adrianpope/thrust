@@ -2,20 +2,32 @@
 #include <thrust/functional.h>
 #include <thrust/transform.h>
 
+#include <thrust/detail/allocator/allocator_traits.h>
+
 static const size_t num_samples = 10000;
 
 template<typename Vector, typename U> struct rebind_vector;
 
-template<typename T, typename U>
-  struct rebind_vector<thrust::host_vector<T>, U>
+template<typename T, typename U, typename Allocator>
+  struct rebind_vector<thrust::host_vector<T, Allocator>, U>
 {
-  typedef thrust::host_vector<U> type;
+  typedef typename thrust::detail::allocator_traits<Allocator> alloc_traits;
+  typedef typename alloc_traits::template rebind_alloc<U> new_alloc;
+  typedef thrust::host_vector<U, new_alloc> type;
 };
 
-template<typename T, typename U>
-  struct rebind_vector<thrust::device_vector<T>, U>
+template<typename T, typename U, typename Allocator>
+  struct rebind_vector<thrust::device_vector<T, Allocator>, U>
 {
-  typedef thrust::device_vector<U> type;
+  typedef thrust::device_vector<U,
+    typename Allocator::template rebind<U>::other> type;
+};
+
+template<typename T, typename U, typename Allocator>
+  struct rebind_vector<thrust::universal_vector<T, Allocator>, U>
+{
+  typedef thrust::universal_vector<U,
+    typename Allocator::template rebind<U>::other> type;
 };
 
 #define BINARY_FUNCTIONAL_PLACEHOLDERS_TEST(name, reference_operator, functor) \
@@ -63,5 +75,5 @@ template<typename Vector>
 
   ASSERT_EQUAL(reference, result);
 }
-DECLARE_VECTOR_UNITTEST(TestFunctionalPlaceholdersLogicalNot);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestFunctionalPlaceholdersLogicalNot);
 

@@ -14,10 +14,9 @@
  *  limitations under the License.
  */
 
+#pragma once
 
-/*! \file uninitialized_fill.inl
- *  \brief Inline file for uninitialized_fill.h.
- */
+#include <thrust/detail/config.h>
 
 #include <thrust/uninitialized_fill.h>
 #include <thrust/iterator/iterator_traits.h>
@@ -25,11 +24,10 @@
 #include <thrust/system/detail/generic/uninitialized_fill.h>
 #include <thrust/system/detail/adl/uninitialized_fill.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename ForwardIterator, typename T>
 __host__ __device__
   void uninitialized_fill(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -42,7 +40,7 @@ __host__ __device__
 } // end uninitialized_fill()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename ForwardIterator, typename Size, typename T>
 __host__ __device__
   ForwardIterator uninitialized_fill_n(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -88,5 +86,5 @@ template<typename ForwardIterator,
 } // end uninitialized_fill_n()
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

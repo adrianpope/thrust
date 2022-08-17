@@ -1,6 +1,5 @@
 /*
- *
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,6 +14,10 @@
  *  limitations under the License.
  */
 
+#pragma once
+
+#include <thrust/detail/config.h>
+
 #include <thrust/random/normal_distribution.h>
 #include <thrust/random/uniform_real_distribution.h>
 #include <thrust/detail/cstdint.h>
@@ -27,14 +30,14 @@
 #include <limits>
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
 
 
 template<typename RealType>
+  __host__ __device__
   normal_distribution<RealType>
     ::normal_distribution(RealType a, RealType b)
       :super_t(),m_param(a,b)
@@ -43,6 +46,7 @@ template<typename RealType>
 
 
 template<typename RealType>
+  __host__ __device__
   normal_distribution<RealType>
     ::normal_distribution(const param_type &parm)
       :super_t(),m_param(parm)
@@ -51,6 +55,7 @@ template<typename RealType>
 
 
 template<typename RealType>
+  __host__ __device__
   void normal_distribution<RealType>
     ::reset(void)
 {
@@ -60,6 +65,7 @@ template<typename RealType>
 
 template<typename RealType>
   template<typename UniformRandomNumberGenerator>
+    __host__ __device__
     typename normal_distribution<RealType>::result_type
       normal_distribution<RealType>
         ::operator()(UniformRandomNumberGenerator &urng)
@@ -70,6 +76,7 @@ template<typename RealType>
 
 template<typename RealType>
   template<typename UniformRandomNumberGenerator>
+    __host__ __device__
     typename normal_distribution<RealType>::result_type
       normal_distribution<RealType>
         ::operator()(UniformRandomNumberGenerator &urng,
@@ -80,6 +87,7 @@ template<typename RealType>
 
 
 template<typename RealType>
+  __host__ __device__
   typename normal_distribution<RealType>::param_type
     normal_distribution<RealType>
       ::param(void) const
@@ -89,6 +97,7 @@ template<typename RealType>
 
 
 template<typename RealType>
+  __host__ __device__
   void normal_distribution<RealType>
     ::param(const param_type &parm)
 {
@@ -97,15 +106,17 @@ template<typename RealType>
 
 
 template<typename RealType>
+  __host__ __device__
   typename normal_distribution<RealType>::result_type
     normal_distribution<RealType>
       ::min THRUST_PREVENT_MACRO_SUBSTITUTION (void) const
 {
-  return -this->max();
+  return -this->max THRUST_PREVENT_MACRO_SUBSTITUTION ();
 } // end normal_distribution::min()
 
 
 template<typename RealType>
+  __host__ __device__
   typename normal_distribution<RealType>::result_type
     normal_distribution<RealType>
       ::max THRUST_PREVENT_MACRO_SUBSTITUTION (void) const
@@ -126,6 +137,7 @@ template<typename RealType>
 
 
 template<typename RealType>
+  __host__ __device__
   typename normal_distribution<RealType>::result_type
     normal_distribution<RealType>
       ::mean(void) const
@@ -135,6 +147,7 @@ template<typename RealType>
 
 
 template<typename RealType>
+  __host__ __device__
   typename normal_distribution<RealType>::result_type
     normal_distribution<RealType>
       ::stddev(void) const
@@ -144,6 +157,7 @@ template<typename RealType>
 
 
 template<typename RealType>
+  __host__ __device__
   bool normal_distribution<RealType>
     ::equal(const normal_distribution &rhs) const
 {
@@ -200,6 +214,7 @@ template<typename RealType>
 
 
 template<typename RealType>
+__host__ __device__
 bool operator==(const normal_distribution<RealType> &lhs,
                 const normal_distribution<RealType> &rhs)
 {
@@ -208,6 +223,7 @@ bool operator==(const normal_distribution<RealType> &lhs,
 
 
 template<typename RealType>
+__host__ __device__
 bool operator!=(const normal_distribution<RealType> &lhs,
                 const normal_distribution<RealType> &rhs)
 {
@@ -237,5 +253,5 @@ operator>>(std::basic_istream<CharT,Traits> &is,
 
 } // end random
 
-} // end thrust
+THRUST_NAMESPACE_END
 

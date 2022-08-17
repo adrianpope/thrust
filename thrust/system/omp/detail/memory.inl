@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2018 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,44 +14,20 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/system/cpp/detail/execution_policy.h>
 #include <thrust/system/omp/memory.h>
 #include <thrust/system/cpp/memory.h>
+
 #include <limits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
 {
-
-
-template<typename T>
-  template<typename OtherT>
-    reference<T> &
-      reference<T>
-        ::operator=(const reference<OtherT> &other)
-{
-  return super_t::operator=(other);
-} // end reference::operator=()
-
-template<typename T>
-  reference<T> &
-    reference<T>
-      ::operator=(const value_type &x)
-{
-  return super_t::operator=(x);
-} // end reference::operator=()
-
-template<typename T>
-__host__ __device__
-void swap(reference<T> a, reference<T> b)
-{
-  a.swap(b);
-} // end swap()
-
 namespace detail
 {
 
@@ -106,5 +82,5 @@ inline void free(pointer<void> ptr)
 
 } // end omp
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -76,8 +76,7 @@
 // define these entities here for the purpose of Doxygenating them
 // they are actually defined elsewhere
 #if 0
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -129,7 +128,7 @@ struct tag : thrust::system::tbb::execution_policy<tag> { unspecified };
  *    __host__ __device__
  *    void operator()(int x)
  *    {
- *      printf("%d\n");
+ *      printf("%d\n", x);
  *    }
  *  };
  *  ...
@@ -150,7 +149,7 @@ static const unspecified par;
 
 } // end tbb
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 #endif
 
 

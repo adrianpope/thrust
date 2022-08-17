@@ -28,8 +28,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/tuple.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace functional
@@ -59,7 +58,7 @@ template<unsigned int i>
     };
 
     __host__ __device__
-    argument(void){}
+    constexpr argument(){}
 
     template<typename Env>
     __host__ __device__
@@ -71,5 +70,5 @@ template<unsigned int i>
 
 } // end functional
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -10,8 +10,6 @@
 template <class Vector>
 void TestScatterSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector map(5);  // scatter indices
     Vector src(5);  // source vector
     Vector dst(8);  // destination vector
@@ -31,7 +29,7 @@ void TestScatterSimple(void)
     ASSERT_EQUAL(dst[6], 0);
     ASSERT_EQUAL(dst[7], 3);
 }
-DECLARE_VECTOR_UNITTEST(TestScatterSimple);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestScatterSimple);
 
 
 template<typename InputIterator1,
@@ -41,7 +39,7 @@ void scatter(my_system &system,
              InputIterator1,
              InputIterator1,
              InputIterator2,
-             RandomAccessIterator output)
+             RandomAccessIterator)
 {
     system.validate_dispatch();
 }
@@ -141,8 +139,6 @@ DECLARE_VARIABLE_UNITTEST(TestScatterToDiscardIterator);
 template <class Vector>
 void TestScatterIfSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector flg(5);  // predicate array
     Vector map(5);  // scatter indices
     Vector src(5);  // source vector
@@ -164,7 +160,7 @@ void TestScatterIfSimple(void)
     ASSERT_EQUAL(dst[6], 0);
     ASSERT_EQUAL(dst[7], 3);
 }
-DECLARE_VECTOR_UNITTEST(TestScatterIfSimple);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestScatterIfSimple);
 
 
 template<typename InputIterator1,
@@ -176,7 +172,7 @@ void scatter_if(my_system &system,
                 InputIterator1,
                 InputIterator2,
                 InputIterator3,
-                RandomAccessIterator output)
+                RandomAccessIterator)
 {
     system.validate_dispatch();
 }
@@ -284,8 +280,6 @@ DECLARE_VARIABLE_UNITTEST(TestScatterIfToDiscardIterator);
 template <typename Vector>
 void TestScatterCountingIterator(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector source(10);
     thrust::sequence(source.begin(), source.end(), 0);
 
@@ -318,14 +312,12 @@ void TestScatterCountingIterator(void)
 
     ASSERT_EQUAL(output, map);
 }
-DECLARE_VECTOR_UNITTEST(TestScatterCountingIterator);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestScatterCountingIterator);
 
 
 template <typename Vector>
 void TestScatterIfCountingIterator(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector source(10);
     thrust::sequence(source.begin(), source.end(), 0);
 
@@ -363,5 +355,5 @@ void TestScatterIfCountingIterator(void)
 
     ASSERT_EQUAL(output, map);
 }
-DECLARE_VECTOR_UNITTEST(TestScatterIfCountingIterator);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestScatterIfCountingIterator);
 

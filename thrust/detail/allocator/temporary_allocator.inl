@@ -14,18 +14,23 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/allocator/temporary_allocator.h>
 #include <thrust/detail/temporary_buffer.h>
 #include <thrust/system/detail/bad_alloc.h>
 #include <cassert>
 
-#ifdef __NVCC__
-#include <thrust/system/cuda/detail/terminate.h>
-#endif
+#include <nv/target>
 
-namespace thrust
-{
+#if THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA
+#if (defined(_NVHPC_CUDA) || defined(__CUDA_ARCH__))
+#include <thrust/system/cuda/detail/terminate.h>
+#endif // NVCC device pass or NVC++
+#endif // CUDA
+
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -45,10 +50,14 @@ __host__ __device__
     // note that we pass cnt to deallocate, not a value derived from result.second
     deallocate(result.first, cnt);
 
-#if !defined(__CUDA_ARCH__)
-    throw thrust::system::detail::bad_alloc("temporary_buffer::allocate: get_temporary_buffer failed");
+#if THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA
+    NV_IF_TARGET(NV_IS_HOST, (
+      throw thrust::system::detail::bad_alloc("temporary_buffer::allocate: get_temporary_buffer failed");
+    ), ( // NV_IS_DEVICE
+      thrust::system::cuda::detail::terminate_with_message("temporary_buffer::allocate: get_temporary_buffer failed");
+    ));
 #else
-    thrust::system::cuda::detail::terminate_with_message("temporary_buffer::allocate: get_temporary_buffer failed");
+    throw thrust::system::detail::bad_alloc("temporary_buffer::allocate: get_temporary_buffer failed");
 #endif
   } // end if
 
@@ -61,10 +70,10 @@ __host__ __device__
   void temporary_allocator<T,System>
     ::deallocate(typename temporary_allocator<T,System>::pointer p, typename temporary_allocator<T,System>::size_type n)
 {
-  return thrust::return_temporary_buffer(system(), p);
+  return thrust::return_temporary_buffer(system(), p, n);
 } // end temporary_allocator
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

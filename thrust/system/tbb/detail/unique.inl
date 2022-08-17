@@ -2,7 +2,7 @@
  *  Copyright 2008-2013 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in ctbbliance with the License.
+ *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -21,8 +21,7 @@
 #include <thrust/system/detail/generic/unique.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -59,8 +58,22 @@ template<typename DerivedPolicy,
 } // end unique_copy()
 
 
+template<typename DerivedPolicy,
+         typename ForwardIterator,
+         typename BinaryPredicate>
+  typename thrust::iterator_traits<ForwardIterator>::difference_type
+    unique_count(execution_policy<DerivedPolicy> &exec,
+                 ForwardIterator first,
+                 ForwardIterator last,
+                 BinaryPredicate binary_pred)
+{
+  // tbb prefers generic::unique_count to cpp::unique_count
+  return thrust::system::detail::generic::unique_count(exec,first,last,binary_pred);
+} // end unique_count()
+
+
 } // end namespace detail
 } // end namespace tbb 
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

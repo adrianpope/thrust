@@ -14,14 +14,15 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
+#include <thrust/functional.h>
 #include <thrust/system/detail/generic/replace.h>
 #include <thrust/transform.h>
 #include <thrust/replace.h>
-#include <thrust/detail/internal_functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -55,7 +56,7 @@ template<typename Predicate, typename NewType, typename OutputType>
   {
     return pred(y) ? new_value : x;
   } // end operator()()
-  
+
   Predicate pred;
   NewType new_value;
 }; // end new_value_if
@@ -70,7 +71,7 @@ template<typename T>
 
   template<typename U>
   __host__ __device__
-  T operator()(U &x)
+  T operator()(U &)
   {
     return c;
   } // end operator()()
@@ -124,8 +125,9 @@ __host__ __device__
                               const T &old_value,
                               const T &new_value)
 {
-  thrust::detail::equal_to_value<T> pred(old_value);
-  return thrust::replace_copy_if(exec, first, last, result, pred, new_value);
+  using thrust::placeholders::_1;
+
+  return thrust::replace_copy_if(exec, first, last, result, _1 == old_value, new_value);
 } // end replace_copy()
 
 
@@ -164,13 +166,14 @@ __host__ __device__
                const T &old_value,
                const T &new_value)
 {
-  thrust::detail::equal_to_value<T> pred(old_value);
-  return thrust::replace_if(exec, first, last, pred, new_value);
+  using thrust::placeholders::_1;
+
+  return thrust::replace_if(exec, first, last, _1 == old_value, new_value);
 } // end replace()
 
 
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/allocator/allocator_traits.h>
 #include <thrust/detail/type_traits/pointer_traits.h>
@@ -24,10 +26,9 @@
 #include <thrust/distance.h>
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/for_each.h>
-#include <memory>
+#include <thrust/detail/memory_wrapper.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace allocator_traits_detail
@@ -56,21 +57,27 @@ template<typename Allocator, typename InputType, typename OutputType>
 };
 
 
+// we need to use allocator_traits<Allocator>::construct() to
+// copy construct a T if either:
+// 1. Allocator has a 2-argument construct() member or
+// 2. T has a non-trivial copy constructor
 template<typename Allocator, typename T>
   struct needs_copy_construct_via_allocator
-    : has_member_construct2<
-        Allocator,
-        T,
-        T
+    : integral_constant<
+        bool,
+        (has_member_construct2<Allocator,T,T>::value || !has_trivial_copy_constructor<T>::value)
       >
 {};
 
 
 // we know that std::allocator::construct's only effect is to call T's
-// copy constructor, so we needn't use it for copy construction
+// copy constructor, so we needn't consider or use its construct() member for copy construction
 template<typename U, typename T>
   struct needs_copy_construct_via_allocator<std::allocator<U>, T>
-    : thrust::detail::false_type
+    : integral_constant<
+        bool,
+        !has_trivial_copy_constructor<T>::value
+      >
 {};
 
 
@@ -86,7 +93,7 @@ __host__ __device__
     Pointer
   >::type
     uninitialized_copy_with_allocator(Allocator &a,
-                                      const thrust::execution_policy<FromSystem> &from_system,
+                                      const thrust::execution_policy<FromSystem> &,
                                       const thrust::execution_policy<ToSystem> &to_system,
                                       InputIterator first,
                                       InputIterator last,
@@ -128,7 +135,7 @@ __host__ __device__
     Pointer
   >::type
     uninitialized_copy_with_allocator_n(Allocator &a,
-                                        const thrust::execution_policy<FromSystem> &from_system,
+                                        const thrust::execution_policy<FromSystem> &,
                                         const thrust::execution_policy<ToSystem> &to_system,
                                         InputIterator first,
                                         Size n,
@@ -299,5 +306,5 @@ __host__ __device__
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

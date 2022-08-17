@@ -22,7 +22,7 @@
 
 /*
  * Copyright David Abrahams 2003.
- * 
+ *
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying NOTICE file for the complete license)
  *
@@ -39,8 +39,7 @@
 // #include the details first
 #include <thrust/iterator/detail/counting_iterator.inl>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -65,14 +64,14 @@ namespace thrust
  *  // create iterators
  *  thrust::counting_iterator<int> first(10);
  *  thrust::counting_iterator<int> last = first + 3;
- *   
+ *
  *  first[0]   // returns 10
  *  first[1]   // returns 11
  *  first[100] // returns 110
- *   
+ *
  *  // sum of [first, last)
  *  thrust::reduce(first, last);   // returns 33 (i.e. 10 + 11 + 12)
- *   
+ *
  *  // initialize vector to [0,1,2,..]
  *  thrust::counting_iterator<int> iter(0);
  *  thrust::device_vector<int> vec(500);
@@ -89,11 +88,11 @@ namespace thrust
  *  #include <thrust/copy.h>
  *  #include <thrust/functional.h>
  *  #include <thrust/device_vector.h>
- *   
- *  int main(void)
+ *
+ *  int main()
  *  {
  *   // this example computes indices for all the nonzero values in a sequence
- *   
+ *
  *   // sequence of zero and nonzero values
  *   thrust::device_vector<int> stencil(8);
  *   stencil[0] = 0;
@@ -104,13 +103,13 @@ namespace thrust
  *   stencil[5] = 1;
  *   stencil[6] = 0;
  *   stencil[7] = 1;
- *   
+ *
  *   // storage for the nonzero indices
  *   thrust::device_vector<int> indices(8);
- *   
+ *
  *   // compute indices of nonzero elements
  *   typedef thrust::device_vector<int>::iterator IndexIterator;
- *   
+ *
  *   // use make_counting_iterator to define the sequence [0, 8)
  *   IndexIterator indices_end = thrust::copy_if(thrust::make_counting_iterator(0),
  *                                               thrust::make_counting_iterator(8),
@@ -118,7 +117,7 @@ namespace thrust
  *                                               indices.begin(),
  *                                               thrust::identity<int>());
  *   // indices now contains [1,2,5,7]
- *   
+ *
  *   return 0;
  *  }
  *  \endcode
@@ -145,11 +144,11 @@ template<typename Incrementable,
     /*! \endcond
      */
 
-    /*! Null constructor initializes this \p counting_iterator's \c Incrementable
-     *  counter using its null constructor.
+    /*! Default constructor initializes this \p counting_iterator's counter to
+     * `Incrementable{}`.
      */
     __host__ __device__
-    counting_iterator(void){};
+    counting_iterator() : super_t(Incrementable{}) {}
 
     /*! Copy constructor copies the value of another \p counting_iterator into a
      *  new \p counting_iterator.
@@ -159,7 +158,7 @@ template<typename Incrementable,
     __host__ __device__
     counting_iterator(counting_iterator const &rhs):super_t(rhs.base()){}
 
-    /*! Copy constructor copies the value of another counting_iterator 
+    /*! Copy constructor copies the value of another counting_iterator
      *  with related System type.
      *
      *  \param rhs The \p counting_iterator to copy.
@@ -175,18 +174,22 @@ template<typename Incrementable,
 
     /*! This \c explicit constructor copies the value of an \c Incrementable
      *  into a new \p counting_iterator's \c Incrementable counter.
-     *  
+     *
      *  \param x The initial value of the new \p counting_iterator's \c Incrementable
      *         counter.
      */
     __host__ __device__
     explicit counting_iterator(Incrementable x):super_t(x){}
 
+#if THRUST_CPP_DIALECT >= 2011
+    counting_iterator & operator=(const counting_iterator &) = default;
+#endif
+
     /*! \cond
      */
   private:
     __host__ __device__
-    reference dereference(void) const
+    reference dereference() const
     {
       return this->base_reference();
     }
@@ -239,5 +242,5 @@ counting_iterator<Incrementable> make_counting_iterator(Incrementable x)
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 

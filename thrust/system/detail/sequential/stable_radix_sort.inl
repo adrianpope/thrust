@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  *  limitations under the License.
  */
 
+#pragma once
 
-#include <limits>
+#include <thrust/detail/config.h>
 
 #include <thrust/copy.h>
 #include <thrust/functional.h>
@@ -26,8 +27,9 @@
 #include <thrust/detail/cstdint.h>
 #include <thrust/scatter.h>
 
-namespace thrust
-{
+#include <limits>
+
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -51,7 +53,7 @@ struct RadixEncoder<char> : public thrust::unary_function<char, unsigned char>
   {
     if(std::numeric_limits<char>::is_signed)
     {
-      return x ^ static_cast<unsigned char>(1) << (8 * sizeof(unsigned char) - 1);
+      return static_cast<unsigned char>(x) ^ static_cast<unsigned char>(1) << (8 * sizeof(unsigned char) - 1);
     }
     else
     {
@@ -66,7 +68,7 @@ struct RadixEncoder<signed char> : public thrust::unary_function<signed char, un
   __host__ __device__
   unsigned char operator()(signed char x) const
   {
-    return x ^ static_cast<unsigned char>(1) << (8 * sizeof(unsigned char) - 1);
+    return static_cast<unsigned char>(x) ^ static_cast<unsigned char>(1) << (8 * sizeof(unsigned char) - 1);
   }
 };
 
@@ -76,7 +78,7 @@ struct RadixEncoder<short> : public thrust::unary_function<short, unsigned short
   __host__ __device__
   unsigned short operator()(short x) const
   {
-    return x ^ static_cast<unsigned short>(1) << (8 * sizeof(unsigned short) - 1);
+    return static_cast<unsigned short>(x) ^ static_cast<unsigned short>(1) << (8 * sizeof(unsigned short) - 1);
   }
 };
 
@@ -242,9 +244,9 @@ void radix_sort(sequential::execution_policy<DerivedPolicy> &exec,
 
   const unsigned int NumHistograms = (8 * sizeof(EncodedType) + (RadixBits - 1)) / RadixBits;
   const unsigned int HistogramSize =  1 << RadixBits;
-  
+
   const EncodedType BitMask = static_cast<EncodedType>((1 << RadixBits) - 1);
-  
+
   Encoder encode;
 
   // storage for histograms
@@ -252,10 +254,10 @@ void radix_sort(sequential::execution_policy<DerivedPolicy> &exec,
 
   // see which passes can be eliminated
   bool skip_shuffle[NumHistograms] = {false};
-  
+
   // false if most recent data is stored in (keys1,vals1)
   bool flip = false;
-    
+
   // compute histograms
   for(size_t i = 0; i < N; i++)
   {
@@ -263,7 +265,7 @@ void radix_sort(sequential::execution_policy<DerivedPolicy> &exec,
 
     for(unsigned int j = 0; j < NumHistograms; j++)
     {
-      const EncodedType BitShift = RadixBits * j;
+      const auto BitShift = static_cast<EncodedType>(RadixBits * j);
       histograms[j][(x >> BitShift) & BitMask]++;
     }
   }
@@ -286,7 +288,7 @@ void radix_sort(sequential::execution_policy<DerivedPolicy> &exec,
     }
   }
 
-  // shuffle keys and (optionally) values 
+  // shuffle keys and (optionally) values
   for(unsigned int i = 0; i < NumHistograms; i++)
   {
     const EncodedType BitShift = static_cast<EncodedType>(RadixBits * i);
@@ -315,11 +317,11 @@ void radix_sort(sequential::execution_policy<DerivedPolicy> &exec,
           radix_shuffle_n<RadixBits>(exec, keys1, N, keys2, BitShift, histograms[i]);
         }
       }
-        
+
       flip = (flip) ? false : true;
     }
   }
- 
+
   // ensure final values are in (keys1,vals1)
   if(flip)
   {
@@ -381,7 +383,13 @@ struct radix_sort_dispatcher<2>
                   RandomAccessIterator1 keys1, RandomAccessIterator2 keys2,
                   const size_t N)
   {
-    if(N < (1 << 16))
+#ifdef __QNX__
+    // XXX war for nvbug 200193674
+    const bool condition = true;
+#else
+    const bool condition = N < (1 << 16);
+#endif
+    if (condition)
     {
       radix_sort_detail::radix_sort<8,false>(exec, keys1, keys2, static_cast<int *>(0), static_cast<int *>(0), N);
     }
@@ -403,7 +411,13 @@ struct radix_sort_dispatcher<2>
                   RandomAccessIterator3 vals1, RandomAccessIterator4 vals2,
                   const size_t N)
   {
-    if(N < (1 << 15))
+#ifdef __QNX__
+    // XXX war for nvbug 200193674
+    const bool condition = true;
+#else
+    const bool condition = N < (1 << 15);
+#endif
+    if (condition)
     {
       radix_sort_detail::radix_sort<8,true>(exec, keys1, keys2, vals1, vals2, N);
     }
@@ -548,9 +562,9 @@ void stable_radix_sort(sequential::execution_policy<DerivedPolicy> &exec,
   typedef typename thrust::iterator_value<RandomAccessIterator>::type KeyType;
 
   size_t N = last - first;
-  
+
   thrust::detail::temporary_array<KeyType, DerivedPolicy> temp(exec, N);
-  
+
   radix_sort_detail::radix_sort(exec, first, temp.begin(), N);
 }
 
@@ -568,7 +582,7 @@ void stable_radix_sort_by_key(sequential::execution_policy<DerivedPolicy> &exec,
   typedef typename thrust::iterator_value<RandomAccessIterator2>::type ValueType;
 
   size_t N = last1 - first1;
-  
+
   thrust::detail::temporary_array<KeyType, DerivedPolicy>   temp1(exec, N);
   thrust::detail::temporary_array<ValueType, DerivedPolicy> temp2(exec, N);
 
@@ -579,5 +593,5 @@ void stable_radix_sort_by_key(sequential::execution_policy<DerivedPolicy> &exec,
 } // end namespace sequential
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

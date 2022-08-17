@@ -31,44 +31,17 @@
 #pragma once
 
 #include <thrust/detail/config.h>
+#include <thrust/type_traits/void_t.h>
+
 #include <iterator>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \p iterator_traits is a type trait class that provides a uniform
  *  interface for querying the properties of iterators at compile-time.
  */
-template<typename T>
-  struct iterator_traits
-{
-  typedef typename T::difference_type difference_type;
-  typedef typename T::value_type value_type;
-  typedef typename T::pointer pointer;
-  typedef typename T::reference reference;
-  typedef typename T::iterator_category iterator_category;
-};
-
-// traits are specialized for pointer types
-template<typename T>
-  struct iterator_traits<T*>
-{
-  typedef std::ptrdiff_t difference_type;
-  typedef T value_type;
-  typedef T* pointer;
-  typedef T& reference;
-  typedef std::random_access_iterator_tag iterator_category;
-};
-
-template<typename T>
-  struct iterator_traits<const T*>
-{
-  typedef std::ptrdiff_t difference_type;
-  typedef T value_type;
-  typedef const T* pointer;
-  typedef const T& reference;
-  typedef std::random_access_iterator_tag iterator_category;
-}; // end iterator_traits
+template <typename T>
+struct iterator_traits : std::iterator_traits<T> {};
 
 template<typename Iterator> struct iterator_value;
 
@@ -82,15 +55,7 @@ template<typename Iterator> struct iterator_traversal;
 
 template<typename Iterator> struct iterator_system;
 
-// TODO remove this in Thrust v1.7.0
-template<typename Iterator>
-  struct THRUST_DEPRECATED iterator_space
-{
-  typedef THRUST_DEPRECATED typename iterator_system<Iterator>::type type;
-};
-
-
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/iterator/detail/iterator_traversal_tags.h>
 #include <thrust/iterator/detail/host_system_tag.h>

@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file count.inl
- *  \brief Inline file for count.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/count.h>
@@ -26,11 +23,9 @@
 #include <thrust/system/detail/generic/count.h>
 #include <thrust/system/detail/adl/count.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
-
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename InputIterator, typename EqualityComparable>
 __host__ __device__
   typename thrust::iterator_traits<InputIterator>::difference_type
@@ -41,7 +36,7 @@ __host__ __device__
 } // end count()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename InputIterator, typename Predicate>
 __host__ __device__
   typename thrust::iterator_traits<InputIterator>::difference_type
@@ -79,6 +74,4 @@ count_if(InputIterator first, InputIterator last, Predicate pred)
   return thrust::count_if(select_system(system), first, last, pred);
 } // end count_if()
 
-
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

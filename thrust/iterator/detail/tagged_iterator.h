@@ -20,9 +20,9 @@
 #include <thrust/iterator/iterator_adaptor.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/detail/use_default.h>
+#include <thrust/type_traits/is_contiguous_iterator.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -51,24 +51,35 @@ template<typename Iterator, typename Tag>
 
   public:
     __host__ __device__
-    tagged_iterator(void) {}
+    tagged_iterator() {}
 
     __host__ __device__
     explicit tagged_iterator(Iterator x)
       : super_t(x) {}
 }; // end tagged_iterator
 
-
-// specialize is_trivial_iterator for tagged_iterator
-template<typename> struct is_trivial_iterator;
-
-// tagged_iterator is trivial if its base iterator is
-template<typename BaseIterator, typename Tag>
-  struct is_trivial_iterator<tagged_iterator<BaseIterator,Tag> >
-    : is_trivial_iterator<BaseIterator>
-{};
-
+/*! \p make_tagged_iterator creates a \p tagged_iterator
+ *  from a \c Iterator with system tag \c Tag.
+ *
+ *  \tparam Tag Any system tag.
+ *  \tparam Iterator Any iterator type.
+ *  \param iter The iterator of interest.
+ *  \return An iterator whose system tag is \p Tag and whose behavior is otherwise
+ *          equivalent to \p iter.
+ */
+template <typename Tag, typename Iterator>
+inline auto make_tagged_iterator(Iterator iter) -> tagged_iterator<Iterator, Tag>
+{
+  return tagged_iterator<Iterator, Tag>(iter);
+}
 
 } // end detail
-} // end thrust
+
+// tagged_iterator is trivial if its base iterator is.
+template <typename BaseIterator, typename Tag>
+struct proclaim_contiguous_iterator<
+  detail::tagged_iterator<BaseIterator, Tag>
+> : is_contiguous_iterator<BaseIterator> {};
+
+THRUST_NAMESPACE_END
 

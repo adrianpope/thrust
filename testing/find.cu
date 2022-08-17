@@ -1,4 +1,5 @@
 #include <unittest/unittest.h>
+#include <thrust/sequence.h>
 #include <thrust/find.h>
 #include <thrust/iterator/retag.h>
 
@@ -39,8 +40,6 @@ struct less_than_value_pred
 template <class Vector>
 void TestFindSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector vec(5);
     vec[0] = 1;
     vec[1] = 2;
@@ -306,3 +305,69 @@ struct TestFindIfNot
 };
 VariableUnitTest<TestFindIfNot, SignedIntegralTypes> TestFindIfNotInstance;
 
+void TestFindWithBigIndexesHelper(int magnitude)
+{
+    thrust::counting_iterator<long long> begin(1);
+    thrust::counting_iterator<long long> end = begin + (1ll << magnitude);
+    ASSERT_EQUAL(thrust::distance(begin, end), 1ll << magnitude);
+
+    thrust::detail::intmax_t distance_low_value = thrust::distance(
+        begin,
+        thrust::find(
+            thrust::device,
+            begin,
+            end,
+            17));
+
+    thrust::detail::intmax_t distance_high_value = thrust::distance(
+        begin,
+        thrust::find(
+            thrust::device,
+            begin,
+            end,
+            (1ll << magnitude) - 17));
+
+    ASSERT_EQUAL(distance_low_value, 16);
+    ASSERT_EQUAL(distance_high_value, (1ll << magnitude) - 18);
+}
+
+void TestFindWithBigIndexes()
+{
+    TestFindWithBigIndexesHelper(30);
+    TestFindWithBigIndexesHelper(31);
+    TestFindWithBigIndexesHelper(32);
+    TestFindWithBigIndexesHelper(33);
+}
+DECLARE_UNITTEST(TestFindWithBigIndexes);
+
+namespace
+{
+
+class Weird
+{
+  int value;
+
+public:
+  __host__ __device__ Weird(int val, int)
+      : value(val)
+  {}
+
+  friend __host__ __device__
+  bool operator==(int x, Weird y)
+  {
+    return x == y.value;
+  }
+};
+
+} // end anon namespace
+
+void TestFindAsymmetricEquality()
+{ // Regression test for NVIDIA/thrust#1229
+  thrust::host_vector<int> v(1000);
+  thrust::sequence(v.begin(), v.end());
+  thrust::device_vector<int> dv(v);
+  auto result = thrust::find(dv.begin(), dv.end(), Weird(333, 0));
+  ASSERT_EQUAL(*result, 333);
+  ASSERT_EQUAL(result - dv.begin(), 333);
+}
+DECLARE_UNITTEST(TestFindAsymmetricEquality);

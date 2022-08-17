@@ -1,12 +1,14 @@
+#include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/sort.h>
 #include <thrust/random.h>
+#include <assert.h>
 
 #include "include/timer.h"
 
 // This examples compares sorting performance using Array of Structures (AoS)
 // and Structure of Arrays (SoA) data layout.  Legacy applications will often
-// store data in C/C++ structs, such as MyStruct defined below.  Although 
+// store data in C/C++ structs, such as MyStruct defined below.  Although
 // Thrust can process array of structs, it is typically less efficient than
 // the equivalent structure of arrays layout.  In this particular example,
 // the optimized SoA approach is approximately *five times faster* than the
@@ -57,7 +59,7 @@ int main(void)
   size_t N = 2 * 1024 * 1024;
   float aos_time, soa_time;
 
-  // Sort Key-Value pairs using Array of Structures (AoS) storage 
+  // Sort Key-Value pairs using Array of Structures (AoS) storage
   {
     thrust::device_vector<MyStruct> structures(N);
 
@@ -66,13 +68,14 @@ int main(void)
     timer t;
 
     thrust::sort(structures.begin(), structures.end());
+    assert(thrust::is_sorted(structures.begin(), structures.end()));
 
     aos_time = 1e3 * t.elapsed();
     std::cout << "AoS sort took " << aos_time << " milliseconds" << std::endl;
     assert(thrust::is_sorted(structures.begin(),structures.end()));
   }
 
-  // Sort Key-Value pairs using Structure of Arrays (SoA) storage 
+  // Sort Key-Value pairs using Structure of Arrays (SoA) storage
   {
     thrust::device_vector<int>   keys(N);
     thrust::device_vector<float> values(N);
@@ -82,6 +85,7 @@ int main(void)
     timer t;
 
     thrust::sort_by_key(keys.begin(), keys.end(), values.begin());
+    assert(thrust::is_sorted(keys.begin(), keys.end()));
 
     soa_time = 1e3 * t.elapsed();
     std::cout << "SoA sort took " << soa_time << " milliseconds" << std::endl;

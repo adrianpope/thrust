@@ -26,8 +26,7 @@
 #include <thrust/system/detail/generic/tag.h>
 #include <thrust/detail/static_assert.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -40,13 +39,15 @@ template<typename DerivedPolicy,
          typename InputIterator,
          typename UnaryFunction>
 __host__ __device__
-InputIterator for_each(thrust::execution_policy<DerivedPolicy> &exec,
+InputIterator for_each(thrust::execution_policy<DerivedPolicy> &,
                        InputIterator first,
-                       InputIterator last,
-                       UnaryFunction f)
+                       InputIterator ,
+                       UnaryFunction )
 {
-  // unimplemented
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<InputIterator, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<InputIterator, false>::value)
+  , "unimplemented for this system"
+  );
   return first;
 } // end for_each()
 
@@ -56,13 +57,15 @@ template<typename DerivedPolicy,
          typename Size,
          typename UnaryFunction>
 __host__ __device__
-InputIterator for_each_n(thrust::execution_policy<DerivedPolicy> &exec,
+InputIterator for_each_n(thrust::execution_policy<DerivedPolicy> &,
                          InputIterator first,
-                         Size n,
-                         UnaryFunction f)
+                         Size ,
+                         UnaryFunction )
 {
-  // unimplemented
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<InputIterator, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<InputIterator, false>::value)
+  , "unimplemented for this system"
+  );
   return first;
 } // end for_each_n()
 
@@ -70,5 +73,5 @@ InputIterator for_each_n(thrust::execution_policy<DerivedPolicy> &exec,
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

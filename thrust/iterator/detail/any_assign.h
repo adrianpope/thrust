@@ -18,8 +18,7 @@
 
 #include <thrust/detail/config.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -27,7 +26,7 @@ namespace detail
 // a type which may be assigned any other type
 struct any_assign
 {
-  inline __host__ __device__ any_assign(void)
+  inline __host__ __device__ any_assign()
   {}
 
   template<typename T>
@@ -51,5 +50,5 @@ struct any_assign
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

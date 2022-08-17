@@ -3,6 +3,7 @@
 #include <thrust/device_malloc_allocator.h>
 #include <thrust/iterator/retag.h>
 
+#include <nv/target>
 
 template<typename InputIterator, typename ForwardIterator>
 ForwardIterator uninitialized_copy(my_system &system,
@@ -103,8 +104,6 @@ DECLARE_UNITTEST(TestUninitializedCopyNDispatchImplicit);
 template <class Vector>
 void TestUninitializedCopySimplePOD(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector v1(5);
     v1[0] = 0; v1[1] = 1; v1[2] = 2; v1[3] = 3; v1[4] = 4;
 
@@ -123,8 +122,6 @@ DECLARE_VECTOR_UNITTEST(TestUninitializedCopySimplePOD);
 template<typename Vector>
 void TestUninitializedCopyNSimplePOD(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector v1(5);
     v1[0] = 0; v1[1] = 1; v1[2] = 2; v1[3] = 3; v1[4] = 4;
 
@@ -149,17 +146,18 @@ struct CopyConstructTest
   {}
 
   __host__ __device__
-  CopyConstructTest(const CopyConstructTest &exemplar)
+  CopyConstructTest(const CopyConstructTest &)
   {
-#if __CUDA_ARCH__
-    copy_constructed_on_device = true;
-    copy_constructed_on_host   = false;
-#else
-    copy_constructed_on_device = false;
-    copy_constructed_on_device = true;
-#endif
+    NV_IF_TARGET(NV_IS_DEVICE, (
+      copy_constructed_on_device = true;
+      copy_constructed_on_host   = false;
+    ), (
+      copy_constructed_on_device = false;
+      copy_constructed_on_host = true;
+    ));
   }
 
+  __host__ __device__
   CopyConstructTest &operator=(const CopyConstructTest &x)
   {
     copy_constructed_on_host   = x.copy_constructed_on_host;
@@ -174,7 +172,7 @@ struct CopyConstructTest
 
 struct TestUninitializedCopyNonPODDevice
 {
-  void operator()(const size_t dummy)
+  void operator()(const size_t)
   {
     typedef CopyConstructTest T;
 
@@ -200,7 +198,7 @@ DECLARE_UNITTEST(TestUninitializedCopyNonPODDevice);
 
 struct TestUninitializedCopyNNonPODDevice
 {
-  void operator()(const size_t dummy)
+  void operator()(const size_t)
   {
     typedef CopyConstructTest T;
 
@@ -226,7 +224,7 @@ DECLARE_UNITTEST(TestUninitializedCopyNNonPODDevice);
 
 struct TestUninitializedCopyNonPODHost
 {
-  void operator()(const size_t dummy)
+  void operator()(const size_t)
   {
     typedef CopyConstructTest T;
 
@@ -252,7 +250,7 @@ DECLARE_UNITTEST(TestUninitializedCopyNonPODHost);
 
 struct TestUninitializedCopyNNonPODHost
 {
-  void operator()(const size_t dummy)
+  void operator()(const size_t)
   {
     typedef CopyConstructTest T;
 

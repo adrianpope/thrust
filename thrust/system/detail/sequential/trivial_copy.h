@@ -24,8 +24,9 @@
 #include <cstring>
 #include <thrust/system/detail/sequential/general_copy.h>
 
-namespace thrust
-{
+#include <nv/target>
+
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -40,17 +41,21 @@ __host__ __device__
                     std::ptrdiff_t n,
                     T *result)
 {
-#ifndef __CUDA_ARCH__
-  std::memmove(result, first, n * sizeof(T));
-  return result + n;
-#else
-  return thrust::system::detail::sequential::general_copy_n(first, n, result);
-#endif
+  T* return_value = NULL;
+
+  NV_IF_TARGET(NV_IS_HOST, (
+    std::memmove(result, first, n * sizeof(T));
+    return_value = result + n;
+  ), ( // NV_IS_DEVICE:
+    return_value = thrust::system::detail::sequential::general_copy_n(first, n, result);
+  ));
+
+  return return_value;
 } // end trivial_copy_n()
 
 
 } // end namespace sequential
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

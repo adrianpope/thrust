@@ -14,10 +14,9 @@
  *  limitations under the License.
  */
 
+#pragma once
 
-/*! \file transform_scan.inl
- *  \brief Inline file for transform_scan.h.
- */
+#include <thrust/detail/config.h>
 
 #include <thrust/scan.h>
 #include <thrust/iterator/iterator_traits.h>
@@ -25,11 +24,10 @@
 #include <thrust/system/detail/generic/transform_scan.h>
 #include <thrust/system/detail/adl/transform_scan.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy,
          typename InputIterator,
          typename OutputIterator,
@@ -48,7 +46,7 @@ __host__ __device__
 } // end transform_inclusive_scan()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy,
          typename InputIterator,
          typename OutputIterator,
@@ -115,5 +113,5 @@ template<typename InputIterator,
 } // end transform_exclusive_scan()
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

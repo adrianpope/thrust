@@ -5,8 +5,6 @@
 template <class Vector>
 void TestMinMaxElementSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector data(6);
     data[0] = 3;
     data[1] = 5;
@@ -21,6 +19,29 @@ void TestMinMaxElementSimple(void)
     ASSERT_EQUAL(  thrust::minmax_element(data.begin(), data.end()).second - data.begin(), 1);
 }
 DECLARE_VECTOR_UNITTEST(TestMinMaxElementSimple);
+  
+template <class Vector>
+void TestMinMaxElementWithTransform(void)
+{
+    typedef typename Vector::value_type T;
+
+    Vector data(6);
+    data[0] = 3;
+    data[1] = 5;
+    data[2] = 1;
+    data[3] = 2;
+    data[4] = 5;
+    data[5] = 1;
+
+    ASSERT_EQUAL( *thrust::minmax_element(
+          thrust::make_transform_iterator(data.begin(), thrust::negate<T>()),
+          thrust::make_transform_iterator(data.end(),   thrust::negate<T>())).first, -5);
+    ASSERT_EQUAL( *thrust::minmax_element(
+          thrust::make_transform_iterator(data.begin(), thrust::negate<T>()),
+          thrust::make_transform_iterator(data.end(),   thrust::negate<T>())).second, -1);
+}
+DECLARE_VECTOR_UNITTEST(TestMinMaxElementWithTransform);
+
 
 template<typename T>
 void TestMinMaxElement(const size_t n)
@@ -89,3 +110,29 @@ void TestMinMaxElementDispatchImplicit()
 }
 DECLARE_UNITTEST(TestMinMaxElementDispatchImplicit);
 
+void TestMinMaxElementWithBigIndexesHelper(int magnitude)
+{
+    typedef thrust::counting_iterator<long long> Iter;
+    Iter begin(1);
+    Iter end = begin + (1ll << magnitude);
+    ASSERT_EQUAL(thrust::distance(begin, end), 1ll << magnitude);
+
+    thrust::pair<Iter, Iter> result = thrust::minmax_element(
+        thrust::device, begin, end);
+    ASSERT_EQUAL(*result.first, 1);
+    ASSERT_EQUAL(*result.second, (1ll << magnitude));
+
+    result = thrust::minmax_element(thrust::device, begin, end,
+        thrust::greater<long long>());
+    ASSERT_EQUAL(*result.second, 1);
+    ASSERT_EQUAL(*result.first, (1ll << magnitude));
+}
+
+void TestMinMaxElementWithBigIndexes()
+{
+    TestMinMaxElementWithBigIndexesHelper(30);
+    TestMinMaxElementWithBigIndexesHelper(31);
+    TestMinMaxElementWithBigIndexesHelper(32);
+    TestMinMaxElementWithBigIndexesHelper(33);
+}
+DECLARE_UNITTEST(TestMinMaxElementWithBigIndexes);

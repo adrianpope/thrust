@@ -26,8 +26,7 @@
 #include <thrust/detail/type_traits/iterator/is_output_iterator.h>
 #include <thrust/functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -45,21 +44,8 @@ __host__ __device__
                                 InputIterator last,
                                 OutputIterator result)
 {
-  // the pseudocode for deducing the type of the temporary used below:
-  // 
-  // if OutputIterator is a "pure" output iterator
-  //   TemporaryType = InputIterator::value_type
-  // else
-  //   TemporaryType = OutputIterator::value_type
-
-  typedef typename thrust::detail::eval_if<
-      thrust::detail::is_output_iterator<OutputIterator>::value,
-      thrust::iterator_value<InputIterator>,
-      thrust::iterator_value<OutputIterator>
-  >::type ValueType;
-
   // assume plus as the associative operator
-  return thrust::inclusive_scan(exec, first, last, result, thrust::plus<ValueType>());
+  return thrust::inclusive_scan(exec, first, last, result, thrust::plus<>());
 } // end inclusive_scan()
 
 
@@ -72,21 +58,9 @@ __host__ __device__
                                 InputIterator last,
                                 OutputIterator result)
 {
-  // the pseudocode for deducing the type of the temporary used below:
-  // 
-  // if OutputIterator is a "pure" output iterator
-  //   TemporaryType = InputIterator::value_type
-  // else
-  //   TemporaryType = OutputIterator::value_type
-
-  typedef typename thrust::detail::eval_if<
-      thrust::detail::is_output_iterator<OutputIterator>::value,
-      thrust::iterator_value<InputIterator>,
-      thrust::iterator_value<OutputIterator>
-  >::type ValueType;
-
-  // assume 0 as the initialization value
-  return thrust::exclusive_scan(exec, first, last, result, ValueType(0));
+  // Use the input iterator's value type per https://wg21.link/P0571
+  using ValueType = typename thrust::iterator_value<InputIterator>::type;
+  return thrust::exclusive_scan(exec, first, last, result, ValueType{});
 } // end exclusive_scan()
 
 
@@ -102,7 +76,7 @@ __host__ __device__
                                 T init)
 {
   // assume plus as the associative operator
-  return thrust::exclusive_scan(exec, first, last, result, init, thrust::plus<T>());
+  return thrust::exclusive_scan(exec, first, last, result, init, thrust::plus<>());
 } // end exclusive_scan()
 
 
@@ -111,14 +85,16 @@ template<typename ExecutionPolicy,
          typename OutputIterator,
          typename BinaryFunction>
 __host__ __device__
-  OutputIterator inclusive_scan(thrust::execution_policy<ExecutionPolicy> &exec,
-                                InputIterator first,
-                                InputIterator last,
+  OutputIterator inclusive_scan(thrust::execution_policy<ExecutionPolicy> &,
+                                InputIterator,
+                                InputIterator,
                                 OutputIterator result,
-                                BinaryFunction binary_op)
+                                BinaryFunction)
 {
-  // unimplemented primitive
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<InputIterator, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<InputIterator, false>::value)
+  , "unimplemented for this system"
+  );
   return result;
 } // end inclusive_scan
 
@@ -129,15 +105,17 @@ template<typename ExecutionPolicy,
          typename T,
          typename BinaryFunction>
 __host__ __device__
-  OutputIterator exclusive_scan(thrust::execution_policy<ExecutionPolicy> &exec,
-                                InputIterator first,
-                                InputIterator last,
+  OutputIterator exclusive_scan(thrust::execution_policy<ExecutionPolicy> &,
+                                InputIterator,
+                                InputIterator,
                                 OutputIterator result,
-                                T init,
-                                BinaryFunction binary_op)
+                                T,
+                                BinaryFunction)
 {
-  // unimplemented primitive
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<InputIterator, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<InputIterator, false>::value)
+  , "unimplemented for this system"
+  );
   return result;
 } // end exclusive_scan()
 
@@ -145,5 +123,5 @@ __host__ __device__
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

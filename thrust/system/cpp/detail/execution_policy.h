@@ -19,8 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/sequential/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 // put the canonical tag in the same ns as the backend's entry points
@@ -56,11 +55,8 @@ template<typename Derived>
   struct execution_policy
     : thrust::system::detail::sequential::execution_policy<Derived>
 {
-  // allow conversion to tag
-  inline operator tag () const
-  {
-    return tag();
-  }
+  typedef tag tag_type; 
+  operator tag() const { return tag(); }
 };
 
 } // end detail
@@ -80,5 +76,5 @@ using thrust::system::cpp::execution_policy;
 using thrust::system::cpp::tag;
 
 } // end cpp
-} // end thrust
+THRUST_NAMESPACE_END
 

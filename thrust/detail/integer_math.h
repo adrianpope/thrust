@@ -17,45 +17,56 @@
 #pragma once
 
 #include <thrust/detail/config.h>
+#include <thrust/detail/type_deduction.h>
+
+#include <nv/target>
+
 #include <limits>
 
-
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
-
-template<typename Integer>
+template <typename Integer>
 __host__ __device__ __thrust_forceinline__
 Integer clz(Integer x)
 {
-  // XXX optimize by lowering to intrinsics
-  
-  int num_bits = 8 * sizeof(Integer);
-  int num_bits_minus_one = num_bits - 1;
+  Integer result;
 
-  for(int i = num_bits_minus_one; i >= 0; --i)
-  {
-    if((Integer(1) << i) & x)
+  NV_IF_TARGET(NV_IS_DEVICE, (
+    result = ::__clz(x);
+  ), (
+    int num_bits = 8 * sizeof(Integer);
+    int num_bits_minus_one = num_bits - 1;
+    result = num_bits;
+    for (int i = num_bits_minus_one; i >= 0; --i)
     {
-      return num_bits_minus_one - i;
+      if ((Integer(1) << i) & x)
+      {
+        result = num_bits_minus_one - i;
+        break;
+      }
     }
-  }
+  ));
 
-  return num_bits;
+  return result;
 }
 
-
-template<typename Integer>
+template <typename Integer>
 __host__ __device__ __thrust_forceinline__
 bool is_power_of_2(Integer x)
 {
   return 0 == (x & (x - 1));
 }
 
+template <typename Integer>
+__host__ __device__ __thrust_forceinline__
+bool is_odd(Integer x)
+{
+  return 1 & x;
+}
 
-template<typename Integer>
+template <typename Integer>
 __host__ __device__ __thrust_forceinline__
 Integer log2(Integer x)
 {
@@ -66,30 +77,76 @@ Integer log2(Integer x)
 }
 
 
-template<typename Integer>
+template <typename Integer>
 __host__ __device__ __thrust_forceinline__
 Integer log2_ri(Integer x)
 {
   Integer result = log2(x);
 
-  // this is where we round up to the nearest log
-  if(!is_power_of_2(x))
-  {
+  // This is where we round up to the nearest log.
+  if (!is_power_of_2(x))
     ++result;
-  }
 
   return result;
 }
 
-
-template<typename Integer>
+// x/y rounding towards +infinity for integers
+// Used to determine # of blocks/warps etc.
+template <typename Integer0, typename Integer1>
 __host__ __device__ __thrust_forceinline__
-bool is_odd(Integer x)
+#if THRUST_CPP_DIALECT >= 2011
+// FIXME: Should use common_type.
+auto divide_ri(Integer0 const x, Integer1 const y)
+THRUST_DECLTYPE_RETURNS((x + (y - 1)) / y)
+#else
+// FIXME: Should use common_type.
+Integer0 divide_ri(Integer0 const x, Integer1 const y)
 {
-  return 1 & x;
+  return (x + (y - 1)) / y;
 }
+#endif
 
+// x/y rounding towards zero for integers.
+// Used to determine # of blocks/warps etc.
+template <typename Integer0, typename Integer1>
+__host__ __device__ __thrust_forceinline__
+#if THRUST_CPP_DIALECT >= 2011
+auto divide_rz(Integer0 const x, Integer1 const y)
+THRUST_DECLTYPE_RETURNS(x / y)
+#else
+// FIXME: Should use common_type.
+Integer0 divide_rz(Integer0 const x, Integer1 const y)
+{
+  return x / y;
+}
+#endif
+
+// Round x towards infinity to the next multiple of y.
+template <typename Integer0, typename Integer1>
+__host__ __device__ __thrust_forceinline__
+#if THRUST_CPP_DIALECT >= 2011
+auto round_i(Integer0 const x, Integer1 const y)
+THRUST_DECLTYPE_RETURNS(y * divide_ri(x, y))
+#else
+Integer0 round_i(Integer0 const x, Integer1 const y)
+{
+  return y * divide_ri(x, y);
+}
+#endif
+
+// Round x towards 0 to the next multiple of y.
+template <typename Integer0, typename Integer1>
+__host__ __device__ __thrust_forceinline__
+#if THRUST_CPP_DIALECT >= 2011
+auto round_z(Integer0 const x, Integer1 const y)
+THRUST_DECLTYPE_RETURNS(y * divide_rz(x, y))
+#else
+Integer0 round_z(Integer0 const x, Integer1 const y)
+{
+  return y * divide_rz(x, y);
+}
+#endif
 
 } // end detail
-} // end thrust
 
+THRUST_NAMESPACE_END

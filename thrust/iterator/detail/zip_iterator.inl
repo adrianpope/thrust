@@ -16,17 +16,18 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/detail/tuple_transform.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 template<typename IteratorTuple>
 __host__ __device__
   zip_iterator<IteratorTuple>
-    ::zip_iterator(void)
+    ::zip_iterator()
 {
 } // end zip_iterator::zip_iterator()
 
@@ -57,7 +58,7 @@ template<typename IteratorTuple>
 template<typename IteratorTuple>
 __host__ __device__
 const IteratorTuple &zip_iterator<IteratorTuple>
-  ::get_iterator_tuple(void) const
+  ::get_iterator_tuple() const
 {
   return m_iterator_tuple;
 } // end zip_iterator::get_iterator_tuple()
@@ -67,15 +68,17 @@ template<typename IteratorTuple>
   typename zip_iterator<IteratorTuple>::super_t::reference
   __host__ __device__
     zip_iterator<IteratorTuple>
-      ::dereference(void) const
+      ::dereference() const
 {
   using namespace detail::tuple_impl_specific;
 
-  return thrust::detail::tuple_host_device_transform<detail::dereference_iterator::template apply>(get_iterator_tuple(), detail::dereference_iterator());
+  return thrust::detail::tuple_host_device_transform<
+    detail::dereference_iterator::template apply
+  >(get_iterator_tuple(), detail::dereference_iterator());
 } // end zip_iterator::dereference()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename IteratorTuple>
   template<typename OtherIteratorTuple>
   __host__ __device__
@@ -100,7 +103,7 @@ __host__ __device__
 template<typename IteratorTuple>
 __host__ __device__
   void zip_iterator<IteratorTuple>
-    ::increment(void)
+    ::increment()
 {
   using namespace detail::tuple_impl_specific;
   tuple_for_each(m_iterator_tuple, detail::increment_iterator());
@@ -110,14 +113,14 @@ __host__ __device__
 template<typename IteratorTuple>
 __host__ __device__
   void zip_iterator<IteratorTuple>
-    ::decrement(void)
+    ::decrement()
 {
   using namespace detail::tuple_impl_specific;
   tuple_for_each(m_iterator_tuple, detail::decrement_iterator());
 } // end zip_iterator::decrement()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename IteratorTuple>
   template <typename OtherIteratorTuple>
   __host__ __device__
@@ -129,13 +132,21 @@ template<typename IteratorTuple>
 } // end zip_iterator::distance_to()
 
 
-template<typename IteratorTuple>
+template<typename... Iterators>
 __host__ __device__
-  zip_iterator<IteratorTuple> make_zip_iterator(IteratorTuple t)
+  zip_iterator<thrust::tuple<Iterators...>> make_zip_iterator(thrust::tuple<Iterators...> t)
 {
-  return zip_iterator<IteratorTuple>(t);
+  return zip_iterator<thrust::tuple<Iterators...>>(t);
 } // end make_zip_iterator()
 
 
-} // end thrust
+template<typename... Iterators>
+__host__ __device__
+  zip_iterator<thrust::tuple<Iterators...>> make_zip_iterator(Iterators... its)
+{
+  return make_zip_iterator(thrust::make_tuple(its...));
+} // end make_zip_iterator()
+
+
+THRUST_NAMESPACE_END
 

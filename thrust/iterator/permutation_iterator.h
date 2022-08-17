@@ -37,8 +37,7 @@
 #include <thrust/iterator/iterator_facade.h>
 #include <thrust/iterator/iterator_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 /*! \addtogroup iterators
@@ -75,7 +74,7 @@ namespace thrust
  *  #include <thrust/iterator/permutation_iterator.h>
  *  #include <thrust/device_vector.h>
  *  ...
- *  thrust::device_vector<float> values(4);
+ *  thrust::device_vector<float> values(8);
  *  values[0] = 10.0f;
  *  values[1] = 20.0f;
  *  values[2] = 30.0f;
@@ -167,12 +166,19 @@ template <typename ElementIterator,
   /*! \cond
    */
   private:
-    __thrust_hd_warning_disable__
+    // MSVC 2013 and 2015 incorrectly warning about returning a reference to
+    // a local/temporary here.
+    // See goo.gl/LELTNp
+    THRUST_DISABLE_MSVC_WARNING_BEGIN(4172)
+
+    __thrust_exec_check_disable__
     __host__ __device__
     typename super_t::reference dereference() const
     {
       return *(m_element_iterator + *this->base());
     }
+
+    THRUST_DISABLE_MSVC_WARNING_END(4172)
 
     // make friends for the copy constructor
     template<typename,typename> friend class permutation_iterator;
@@ -206,5 +212,5 @@ permutation_iterator<ElementIterator,IndexIterator> make_permutation_iterator(El
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 

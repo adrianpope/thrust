@@ -5,7 +5,7 @@
 #include <thrust/sequence.h>
 #include <thrust/sort.h>
 
-__THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_BEGIN
+THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_BEGIN
 
 //////////////////////
 // Scalar Functions //
@@ -14,8 +14,6 @@ __THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_BEGIN
 template <class Vector>
 void TestScalarLowerBoundSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector vec(5);
 
     vec[0] = 0;
@@ -39,7 +37,7 @@ DECLARE_VECTOR_UNITTEST(TestScalarLowerBoundSimple);
 
 
 template<typename ForwardIterator, typename LessThanComparable>
-ForwardIterator lower_bound(my_system &system, ForwardIterator first, ForwardIterator last, const LessThanComparable &value)
+ForwardIterator lower_bound(my_system &system, ForwardIterator first, ForwardIterator /*last*/, const LessThanComparable &/*value*/)
 {
     system.validate_dispatch();
     return first;
@@ -61,7 +59,7 @@ DECLARE_UNITTEST(TestScalarLowerBoundDispatchExplicit);
 
 
 template<typename ForwardIterator, typename LessThanComparable>
-ForwardIterator lower_bound(my_tag, ForwardIterator first, ForwardIterator last, const LessThanComparable &value)
+ForwardIterator lower_bound(my_tag, ForwardIterator first, ForwardIterator /*last*/, const LessThanComparable &/*value*/)
 {
     *first = 13;
     return first;
@@ -84,8 +82,6 @@ DECLARE_UNITTEST(TestScalarLowerBoundDispatchImplicit);
 template <class Vector>
 void TestScalarUpperBoundSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector vec(5);
 
     vec[0] = 0;
@@ -109,7 +105,7 @@ DECLARE_VECTOR_UNITTEST(TestScalarUpperBoundSimple);
 
 
 template<typename ForwardIterator, typename LessThanComparable>
-ForwardIterator upper_bound(my_system &system, ForwardIterator first, ForwardIterator last, const LessThanComparable &value)
+ForwardIterator upper_bound(my_system &system, ForwardIterator first, ForwardIterator /*last*/, const LessThanComparable &/*value*/)
 {
     system.validate_dispatch();
     return first;
@@ -131,7 +127,7 @@ DECLARE_UNITTEST(TestScalarUpperBoundDispatchExplicit);
 
 
 template<typename ForwardIterator, typename LessThanComparable>
-ForwardIterator upper_bound(my_tag, ForwardIterator first, ForwardIterator last, const LessThanComparable &value)
+ForwardIterator upper_bound(my_tag, ForwardIterator first, ForwardIterator /*last*/, const LessThanComparable &/*value*/)
 {
     *first = 13;
     return first;
@@ -153,8 +149,6 @@ DECLARE_UNITTEST(TestScalarUpperBoundDispatchImplicit);
 template <class Vector>
 void TestScalarBinarySearchSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector vec(5);
 
     vec[0] = 0;
@@ -178,7 +172,7 @@ DECLARE_VECTOR_UNITTEST(TestScalarBinarySearchSimple);
 
 
 template<typename ForwardIterator, typename LessThanComparable>
-bool binary_search(my_system &system, ForwardIterator first, ForwardIterator last, const LessThanComparable &value)
+bool binary_search(my_system &system, ForwardIterator /*first*/, ForwardIterator /*last*/, const LessThanComparable &/*value*/)
 {
     system.validate_dispatch();
     return false;
@@ -200,7 +194,7 @@ DECLARE_UNITTEST(TestScalarBinarySearchDispatchExplicit);
 
 
 template<typename ForwardIterator, typename LessThanComparable>
-bool binary_search(my_tag, ForwardIterator first, ForwardIterator last, const LessThanComparable &value)
+bool binary_search(my_tag, ForwardIterator first, ForwardIterator /*last*/, const LessThanComparable &/*value*/)
 {
     *first = 13;
     return false;
@@ -222,8 +216,6 @@ DECLARE_UNITTEST(TestScalarBinarySearchDispatchImplicit);
 template <class Vector>
 void TestScalarEqualRangeSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector vec(5);
 
     vec[0] = 0;
@@ -258,7 +250,7 @@ DECLARE_VECTOR_UNITTEST(TestScalarEqualRangeSimple);
 
 
 template<typename ForwardIterator, typename LessThanComparable>
-thrust::pair<ForwardIterator,ForwardIterator> equal_range(my_system &system, ForwardIterator first, ForwardIterator last, const LessThanComparable &value)
+thrust::pair<ForwardIterator,ForwardIterator> equal_range(my_system &system, ForwardIterator first, ForwardIterator /*last*/, const LessThanComparable &/*value*/)
 {
     system.validate_dispatch();
     return thrust::make_pair(first,first);
@@ -280,7 +272,7 @@ DECLARE_UNITTEST(TestScalarEqualRangeDispatchExplicit);
 
 
 template<typename ForwardIterator, typename LessThanComparable>
-thrust::pair<ForwardIterator,ForwardIterator> equal_range(my_tag, ForwardIterator first, ForwardIterator last, const LessThanComparable &value)
+thrust::pair<ForwardIterator,ForwardIterator> equal_range(my_tag, ForwardIterator first, ForwardIterator /*last*/, const LessThanComparable &/*value*/)
 {
     *first = 13;
     return thrust::make_pair(first,first);
@@ -298,4 +290,58 @@ void TestScalarEqualRangeDispatchImplicit()
 }
 DECLARE_UNITTEST(TestScalarEqualRangeDispatchImplicit);
 
-__THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_END
+THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_END
+
+void TestBoundsWithBigIndexesHelper(int magnitude)
+{
+    thrust::counting_iterator<long long> begin(1);
+    thrust::counting_iterator<long long> end = begin + (1ll << magnitude);
+    ASSERT_EQUAL(thrust::distance(begin, end), 1ll << magnitude);
+
+    thrust::detail::intmax_t distance_low_value = thrust::distance(
+        begin,
+        thrust::lower_bound(
+            thrust::device,
+            begin,
+            end,
+            17));
+
+    thrust::detail::intmax_t distance_high_value = thrust::distance(
+        begin,
+        thrust::lower_bound(
+            thrust::device,
+            begin,
+            end,
+            (1ll << magnitude) - 17));
+
+    ASSERT_EQUAL(distance_low_value, 16);
+    ASSERT_EQUAL(distance_high_value, (1ll << magnitude) - 18);
+
+    distance_low_value = thrust::distance(
+        begin,
+        thrust::upper_bound(
+            thrust::device,
+            begin,
+            end,
+            17));
+
+    distance_high_value = thrust::distance(
+        begin,
+        thrust::upper_bound(
+            thrust::device,
+            begin,
+            end,
+            (1ll << magnitude) - 17));
+
+    ASSERT_EQUAL(distance_low_value, 17);
+    ASSERT_EQUAL(distance_high_value, (1ll << magnitude) - 17);
+}
+
+void TestBoundsWithBigIndexes()
+{
+    TestBoundsWithBigIndexesHelper(30);
+    TestBoundsWithBigIndexesHelper(31);
+    TestBoundsWithBigIndexesHelper(32);
+    TestBoundsWithBigIndexesHelper(33);
+}
+DECLARE_UNITTEST(TestBoundsWithBigIndexes);

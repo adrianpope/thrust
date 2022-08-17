@@ -36,8 +36,7 @@
 #include <thrust/iterator/iterator_facade.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -67,7 +66,7 @@ namespace thrust
  *  int_v[0] = 0; int_v[1] = 1; int_v[2] = 2;
  *
  *  thrust::device_vector<float> float_v(3);
- *  float_v[0] = 0.0f; float_v[1] = 1.0;f float_v[2] = 2.0f;
+ *  float_v[0] = 0.0f; float_v[1] = 1.0f; float_v[2] = 2.0f;
  *
  *  thrust::device_vector<char> char_v(3);
  *  char_v[0] = 'a'; char_v[1] = 'b'; char_v[2] = 'c';
@@ -108,7 +107,7 @@ namespace thrust
  *  #include <thrust/tuple.h>
  *  #include <thrust/device_vector.h>
  *
- *  int main(void)
+ *  int main()
  *  {
  *    thrust::device_vector<int> int_in(3), int_out(3);
  *    int_in[0] = 0;
@@ -144,7 +143,7 @@ template <typename IteratorTuple>
     /*! Null constructor does nothing.
      */
     inline __host__ __device__
-    zip_iterator(void);
+    zip_iterator();
 
     /*! This constructor creates a new \p zip_iterator from a
      *  \p tuple of iterators.
@@ -229,9 +228,23 @@ template <typename IteratorTuple>
  *
  *  \see zip_iterator
  */
-template<typename IteratorTuple>
+template<typename... Iterators>
 inline __host__ __device__
-zip_iterator<IteratorTuple> make_zip_iterator(IteratorTuple t);
+zip_iterator<thrust::tuple<Iterators...>> make_zip_iterator(thrust::tuple<Iterators...> t);
+
+
+/*! \p make_zip_iterator creates a \p zip_iterator from
+ *  iterators.
+ *
+ *  \param its The iterators to copy.
+ *  \return A newly created \p zip_iterator which zips the iterators.
+ *
+ *  \see zip_iterator
+ */
+template<typename... Iterators>
+inline __host__ __device__
+zip_iterator<thrust::tuple<Iterators...>> make_zip_iterator(Iterators... its);
+
 
 /*! \} // end fancyiterators
  */
@@ -239,7 +252,7 @@ zip_iterator<IteratorTuple> make_zip_iterator(IteratorTuple t);
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/iterator/detail/zip_iterator.inl>
 

@@ -2,7 +2,7 @@
  *  Copyright 2008-2013 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in ctbbliance with the License.
+ *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -23,8 +23,7 @@
 #include <thrust/detail/type_traits/minimum_type.h>
 #include <thrust/detail/copy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -133,5 +132,5 @@ OutputIterator copy_n(execution_policy<DerivedPolicy> &exec,
 } // end namespace detail
 } // end namespace tbb
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

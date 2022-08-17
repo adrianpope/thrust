@@ -1,8 +1,14 @@
 #include <unittest/unittest.h>
+
+#include <thrust/detail/config.h>
+
 #include <thrust/scan.h>
 #include <thrust/functional.h>
 #include <thrust/iterator/discard_iterator.h>
+#include <thrust/iterator/constant_iterator.h>
 #include <thrust/iterator/retag.h>
+#include <thrust/device_malloc.h>
+#include <thrust/device_free.h>
 
 
 template<typename T>
@@ -20,6 +26,17 @@ template <class Vector>
 void TestScanSimple(void)
 {
     typedef typename Vector::value_type T;
+
+    // icc miscompiles the intermediate sum updates for custom_numeric.
+    // The issue doesn't happen with opts disabled, or on other compilers.
+    // Printing the intermediate sum each iteration "fixes" the issue,
+    // so likely a bad optimization.
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_INTEL
+    if (std::is_same<T, custom_numeric>::value)
+    {
+      return;
+    }
+#endif
     
     typename Vector::iterator iter;
 
@@ -34,35 +51,35 @@ void TestScanSimple(void)
     // inclusive scan
     iter = thrust::inclusive_scan(input.begin(), input.end(), output.begin());
     result[0] = 1; result[1] = 4; result[2] = 2; result[3] = 6; result[4] = 1;
-    ASSERT_EQUAL(iter - output.begin(), input.size());
+    ASSERT_EQUAL(std::size_t(iter - output.begin()), input.size());
     ASSERT_EQUAL(input,  input_copy);
     ASSERT_EQUAL(output, result);
     
     // exclusive scan
-    iter = thrust::exclusive_scan(input.begin(), input.end(), output.begin(), 0);
+    iter = thrust::exclusive_scan(input.begin(), input.end(), output.begin(), T(0));
     result[0] = 0; result[1] = 1; result[2] = 4; result[3] = 2; result[4] = 6;
-    ASSERT_EQUAL(iter - output.begin(), input.size());
+    ASSERT_EQUAL(std::size_t(iter - output.begin()), input.size());
     ASSERT_EQUAL(input,  input_copy);
     ASSERT_EQUAL(output, result);
     
     // exclusive scan with init
-    iter = thrust::exclusive_scan(input.begin(), input.end(), output.begin(), 3);
+    iter = thrust::exclusive_scan(input.begin(), input.end(), output.begin(), T(3));
     result[0] = 3; result[1] = 4; result[2] = 7; result[3] = 5; result[4] = 9;
-    ASSERT_EQUAL(iter - output.begin(), input.size());
+    ASSERT_EQUAL(std::size_t(iter - output.begin()), input.size());
     ASSERT_EQUAL(input,  input_copy);
     ASSERT_EQUAL(output, result);
     
     // inclusive scan with op
     iter = thrust::inclusive_scan(input.begin(), input.end(), output.begin(), thrust::plus<T>());
     result[0] = 1; result[1] = 4; result[2] = 2; result[3] = 6; result[4] = 1;
-    ASSERT_EQUAL(iter - output.begin(), input.size());
+    ASSERT_EQUAL(std::size_t(iter - output.begin()), input.size());
     ASSERT_EQUAL(input,  input_copy);
     ASSERT_EQUAL(output, result);
 
     // exclusive scan with init and op
-    iter = thrust::exclusive_scan(input.begin(), input.end(), output.begin(), 3, thrust::plus<T>());
+    iter = thrust::exclusive_scan(input.begin(), input.end(), output.begin(), T(3), thrust::plus<T>());
     result[0] = 3; result[1] = 4; result[2] = 7; result[3] = 5; result[4] = 9;
-    ASSERT_EQUAL(iter - output.begin(), input.size());
+    ASSERT_EQUAL(std::size_t(iter - output.begin()), input.size());
     ASSERT_EQUAL(input,  input_copy);
     ASSERT_EQUAL(output, result);
 
@@ -70,21 +87,21 @@ void TestScanSimple(void)
     input = input_copy;
     iter = thrust::inclusive_scan(input.begin(), input.end(), input.begin());
     result[0] = 1; result[1] = 4; result[2] = 2; result[3] = 6; result[4] = 1;
-    ASSERT_EQUAL(iter - input.begin(), input.size());
+    ASSERT_EQUAL(std::size_t(iter - input.begin()), input.size());
     ASSERT_EQUAL(input, result);
 
     // inplace exclusive scan with init
     input = input_copy;
-    iter = thrust::exclusive_scan(input.begin(), input.end(), input.begin(), 3);
+    iter = thrust::exclusive_scan(input.begin(), input.end(), input.begin(), T(3));
     result[0] = 3; result[1] = 4; result[2] = 7; result[3] = 5; result[4] = 9;
-    ASSERT_EQUAL(iter - input.begin(), input.size());
+    ASSERT_EQUAL(std::size_t(iter - input.begin()), input.size());
     ASSERT_EQUAL(input, result);
 
     // inplace exclusive scan with implicit init=0
     input = input_copy;
     iter = thrust::exclusive_scan(input.begin(), input.end(), input.begin());
     result[0] = 0; result[1] = 1; result[2] = 4; result[3] = 2; result[4] = 6;
-    ASSERT_EQUAL(iter - input.begin(), input.size());
+    ASSERT_EQUAL(std::size_t(iter - input.begin()), input.size());
     ASSERT_EQUAL(input, result);
 }
 DECLARE_VECTOR_UNITTEST(TestScanSimple);
@@ -247,48 +264,49 @@ void TestScanMixedTypes(void)
 
     IntVector   int_output(4);
     FloatVector float_output(4);
-     
-    // float -> int should use using plus<int> operator by default
+
+    // float -> int should use plus<void> operator and float accumulator by default
     thrust::inclusive_scan(float_input.begin(), float_input.end(), int_output.begin());
-    ASSERT_EQUAL(int_output[0],  1);
-    ASSERT_EQUAL(int_output[1],  3);
-    ASSERT_EQUAL(int_output[2],  6);
-    ASSERT_EQUAL(int_output[3], 10);
-    
-    // float -> float with plus<int> operator (int accumulator)
+    ASSERT_EQUAL(int_output[0],  1); // in: 1.5 accum: 1.5f out: 1
+    ASSERT_EQUAL(int_output[1],  4); // in: 2.5 accum: 4.0f out: 4
+    ASSERT_EQUAL(int_output[2],  7); // in: 3.5 accum: 7.5f out: 7
+    ASSERT_EQUAL(int_output[3], 12); // in: 4.5 accum: 12.f out: 12
+
+    // float -> float with plus<int> operator (float accumulator)
     thrust::inclusive_scan(float_input.begin(), float_input.end(), float_output.begin(), thrust::plus<int>());
-    ASSERT_EQUAL(float_output[0],  1.0);
-    ASSERT_EQUAL(float_output[1],  3.0);
-    ASSERT_EQUAL(float_output[2],  6.0);
-    ASSERT_EQUAL(float_output[3], 10.0);
-    
-    // float -> int should use using plus<int> operator by default
+    ASSERT_EQUAL(float_output[0],  1.5f); // in: 1.5 accum: 1.5f out: 1.5f
+    ASSERT_EQUAL(float_output[1],  3.0f); // in: 2.5 accum: 3.0f out: 3.0f
+    ASSERT_EQUAL(float_output[2],  6.0f); // in: 3.5 accum: 6.0f out: 6.0f
+    ASSERT_EQUAL(float_output[3], 10.0f); // in: 4.5 accum: 10.f out: 10.f
+
+    // float -> int should use plus<void> operator and float accumulator by default
     thrust::exclusive_scan(float_input.begin(), float_input.end(), int_output.begin());
-    ASSERT_EQUAL(int_output[0], 0);
-    ASSERT_EQUAL(int_output[1], 1);
-    ASSERT_EQUAL(int_output[2], 3);
-    ASSERT_EQUAL(int_output[3], 6);
-    
-    // float -> int should use using plus<int> operator by default
+    ASSERT_EQUAL(int_output[0], 0); // out: 0.0f  in: 1.5 accum: 1.5f
+    ASSERT_EQUAL(int_output[1], 1); // out: 1.5f  in: 2.5 accum: 4.0f
+    ASSERT_EQUAL(int_output[2], 4); // out: 4.0f  in: 3.5 accum: 7.5f
+    ASSERT_EQUAL(int_output[3], 7); // out: 7.5f  in: 4.5 accum: 12.f
+
+    // float -> int should use plus<> operator and float accumulator by default
     thrust::exclusive_scan(float_input.begin(), float_input.end(), int_output.begin(), (float) 5.5);
-    ASSERT_EQUAL(int_output[0],  5);
-    ASSERT_EQUAL(int_output[1],  7);
-    ASSERT_EQUAL(int_output[2],  9);
-    ASSERT_EQUAL(int_output[3], 13);
-    
-    // int -> float should use using plus<float> operator by default
+    ASSERT_EQUAL(int_output[0],  5); // out: 5.5f  in: 1.5 accum: 7.0f
+    ASSERT_EQUAL(int_output[1],  7); // out: 7.0f  in: 2.5 accum: 9.5f
+    ASSERT_EQUAL(int_output[2],  9); // out: 9.5f  in: 3.5 accum: 13.0f
+    ASSERT_EQUAL(int_output[3], 13); // out: 13.f  in: 4.5 accum: 17.4f
+
+    // int -> float should use using plus<> operator and int accumulator by default
     thrust::inclusive_scan(int_input.begin(), int_input.end(), float_output.begin());
-    ASSERT_EQUAL(float_output[0],  1.0);
-    ASSERT_EQUAL(float_output[1],  3.0);
-    ASSERT_EQUAL(float_output[2],  6.0);
-    ASSERT_EQUAL(float_output[3], 10.0);
-    
-    // int -> float should use using plus<float> operator by default
+    ASSERT_EQUAL(float_output[0],  1.f); // in: 1 accum: 1  out: 1
+    ASSERT_EQUAL(float_output[1],  3.f); // in: 2 accum: 3  out: 3
+    ASSERT_EQUAL(float_output[2],  6.f); // in: 3 accum: 6  out: 6
+    ASSERT_EQUAL(float_output[3], 10.f); // in: 4 accum: 10 out: 10
+
+    // int -> float + float init_value should use using plus<> operator and
+    // float accumulator by default
     thrust::exclusive_scan(int_input.begin(), int_input.end(), float_output.begin(), (float) 5.5);
-    ASSERT_EQUAL(float_output[0],  5.5);
-    ASSERT_EQUAL(float_output[1],  6.5);
-    ASSERT_EQUAL(float_output[2],  8.5);
-    ASSERT_EQUAL(float_output[3], 11.5);
+    ASSERT_EQUAL(float_output[0],  5.5f); // out: 5.5f  in: 1 accum: 6.5f
+    ASSERT_EQUAL(float_output[1],  6.5f); // out: 6.0f  in: 2 accum: 8.5f
+    ASSERT_EQUAL(float_output[2],  8.5f); // out: 8.0f  in: 3 accum: 11.5f
+    ASSERT_EQUAL(float_output[3], 11.5f); // out: 11.f  in: 4 accum: 15.5f
 }
 void TestScanMixedTypesHost(void)
 {
@@ -476,7 +494,9 @@ void _TestScanWithLargeTypes(void)
     thrust::host_vector< FixedVector<T,N> > h_output(n);
 
     for(size_t i = 0; i < h_input.size(); i++)
-        h_input[i] = FixedVector<T,N>(i);
+    {
+        h_input[i] = FixedVector<T, N>(static_cast<T>(i));
+    }
 
     thrust::device_vector< FixedVector<T,N> > d_input = h_input;
     thrust::device_vector< FixedVector<T,N> > d_output(n);
@@ -496,8 +516,7 @@ void TestScanWithLargeTypes(void)
 {
   _TestScanWithLargeTypes<int,  1>();
 
-  // XXX these are too big for sm_1x
-#if THRUST_DEVICE_SYSTEM != THRUST_DEVICE_SYSTEM_CUDA
+#if !defined(__QNX__)
   _TestScanWithLargeTypes<int,  8>();
   _TestScanWithLargeTypes<int, 64>();
 #else
@@ -554,5 +573,118 @@ void TestInclusiveScanWithIndirection(void)
     ASSERT_EQUAL(data[5], T(0));
     ASSERT_EQUAL(data[6], T(1));
 }
-DECLARE_VECTOR_UNITTEST(TestInclusiveScanWithIndirection);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestInclusiveScanWithIndirection);
 
+struct only_set_when_expected_it
+{
+    long long expected;
+    bool * flag;
+
+    __host__ __device__ only_set_when_expected_it operator++() const { return *this; }
+    __host__ __device__ only_set_when_expected_it operator*() const { return *this; }
+    template<typename Difference>
+    __host__ __device__ only_set_when_expected_it operator+(Difference) const { return *this; }
+    template<typename Index>
+    __host__ __device__ only_set_when_expected_it operator[](Index) const { return *this; }
+
+    __device__
+    void operator=(long long value) const
+    {
+        if (value == expected)
+        {
+            *flag = true;
+        }
+    }
+};
+
+THRUST_NAMESPACE_BEGIN
+template<>
+struct iterator_traits<only_set_when_expected_it>
+{
+    typedef long long value_type;
+    typedef only_set_when_expected_it reference;
+};
+THRUST_NAMESPACE_END
+
+void TestInclusiveScanWithBigIndexesHelper(int magnitude)
+{
+    thrust::constant_iterator<long long> begin(1);
+    thrust::constant_iterator<long long> end = begin + (1ll << magnitude);
+    ASSERT_EQUAL(thrust::distance(begin, end), 1ll << magnitude);
+
+    thrust::device_ptr<bool> has_executed = thrust::device_malloc<bool>(1);
+    *has_executed = false;
+
+    only_set_when_expected_it out = { (1ll << magnitude), thrust::raw_pointer_cast(has_executed) };
+
+    thrust::inclusive_scan(thrust::device, begin, end, out);
+
+    bool has_executed_h = *has_executed;
+    thrust::device_free(has_executed);
+
+    ASSERT_EQUAL(has_executed_h, true);
+}
+
+void TestInclusiveScanWithBigIndexes()
+{
+  TestInclusiveScanWithBigIndexesHelper(30);
+  TestInclusiveScanWithBigIndexesHelper(31);
+  TestInclusiveScanWithBigIndexesHelper(32);
+  TestInclusiveScanWithBigIndexesHelper(33);
+}
+
+DECLARE_UNITTEST(TestInclusiveScanWithBigIndexes);
+
+void TestExclusiveScanWithBigIndexesHelper(int magnitude)
+{
+    thrust::constant_iterator<long long> begin(1);
+    thrust::constant_iterator<long long> end = begin + (1ll << magnitude);
+    ASSERT_EQUAL(thrust::distance(begin, end), 1ll << magnitude);
+
+    thrust::device_ptr<bool> has_executed = thrust::device_malloc<bool>(1);
+    *has_executed = false;
+
+    only_set_when_expected_it out = { (1ll << magnitude) - 1, thrust::raw_pointer_cast(has_executed) };
+
+    thrust::exclusive_scan(thrust::device, begin, end, out,0ll);
+
+    bool has_executed_h = *has_executed;
+    thrust::device_free(has_executed);
+
+    ASSERT_EQUAL(has_executed_h, true);
+}
+
+void TestExclusiveScanWithBigIndexes()
+{
+  TestExclusiveScanWithBigIndexesHelper(30);
+  TestExclusiveScanWithBigIndexesHelper(31);
+  TestExclusiveScanWithBigIndexesHelper(32);
+  TestExclusiveScanWithBigIndexesHelper(33);
+}
+
+DECLARE_UNITTEST(TestExclusiveScanWithBigIndexes);
+
+#if THRUST_CPP_DIALECT >= 2011
+
+struct Int {
+    int i{};
+    __host__ __device__ explicit Int(int num) : i(num) {}
+    __host__ __device__ Int() : i{} {}
+    __host__ __device__ Int operator+(Int const& o) const { return Int{this->i + o.i}; }
+};
+
+void TestInclusiveScanWithUserDefinedType()
+{
+    thrust::device_vector<Int> vec(5, Int{1});
+
+    thrust::inclusive_scan(
+        thrust::device,
+        vec.cbegin(),
+        vec.cend(),
+        vec.begin());
+
+    ASSERT_EQUAL(static_cast<Int>(vec.back()).i, 5);
+}
+DECLARE_UNITTEST(TestInclusiveScanWithUserDefinedType);
+
+#endif // c++11

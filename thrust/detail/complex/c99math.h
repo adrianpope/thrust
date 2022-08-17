@@ -14,20 +14,22 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-#pragma once 
+#pragma once
 
+#include <thrust/detail/config.h>
+
+#include <math.h>
 #include <cmath>
 #include <thrust/detail/complex/math_private.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace complex
 {
 
 // Define basic arithmetic functions so we can use them without explicit scope
-// keeping the code as close as possible to FreeBSDs for ease of maintenance. 
+// keeping the code as close as possible to FreeBSDs for ease of maintenance.
 // It also provides an easy way to support compilers with missing C99 functions.
 // When possible, just use the names in the global scope.
 // Some platforms define these as macros, others as free functions.
@@ -83,11 +85,11 @@ __host__ __device__ inline int isnan(double x){
 }
 
 __host__ __device__ inline int signbit(float x){
-  return (*((uint32_t *)&x)) & 0x80000000;
+  return ((*((uint32_t *)&x)) & 0x80000000) != 0 ? 1 : 0;
 }
 
 __host__ __device__ inline int signbit(double x){
-  return (*((uint32_t *)&x)) & 0x80000000;
+  return ((*((uint64_t *)&x)) & 0x8000000000000000) != 0ull ? 1 : 0;
 }
 
 __host__ __device__ inline int isfinite(float x){
@@ -100,35 +102,25 @@ __host__ __device__ inline int isfinite(double x){
 
 #else
 
-#  ifdef __CUDACC__
-
-// sometimes the CUDA toolkit provides these these names as macros,
-// sometimes functions in the global scope
-
-#    if (CUDA_VERSION >= 6500)
+#  if defined(__CUDACC__) && !(defined(__CUDA__) && defined(__clang__)) && !defined(_NVHPC_CUDA)
+// NVCC implements at least some signature of these as functions not macros.
 using ::isinf;
 using ::isnan;
 using ::signbit;
 using ::isfinite;
-
-#    else
-// these names are macros, we don't need to define them
-
-#    endif // CUDA_VERSION
-
 #  else
-// Some compilers do not provide these in the global scope
-// they are in std:: instead
+// Some compilers do not provide these in the global scope, because they are
+// supposed to be macros. The versions in `std` are supposed to be functions.
 // Since we're not compiling with nvcc, it's safe to use the functions in std::
 using std::isinf;
 using std::isnan;
 using std::signbit;
 using std::isfinite;
 #  endif // __CUDACC__
+#endif // _MSC_VER
 
 using ::atanh;
-#endif // _MSC_VER
-  
+
 #if defined _MSC_VER
 
 __host__ __device__ inline double copysign(double x, double y){
@@ -149,7 +141,7 @@ __host__ __device__ inline float copysignf(float x, float y){
 
 
 
-#ifndef __CUDACC__
+#if !defined(__CUDACC__) && !defined(_NVHPC_CUDA)
 
 // Simple approximation to log1p as Visual Studio is lacking one
 inline double log1p(double x){
@@ -159,7 +151,7 @@ inline double log1p(double x){
   }else{
     if(u > 2.0){
       // Use normal log for large arguments
-      return log(u); 
+      return log(u);
     }else{
       return log(u)*(x/(u-1.0));
     }
@@ -173,7 +165,7 @@ inline float log1pf(float x){
   }else{
     if(u > 2.0f){
       // Use normal log for large arguments
-      return logf(u); 
+      return logf(u);
     }else{
       return logf(u)*(x/(u-1.0f));
     }
@@ -201,5 +193,5 @@ inline double hypot(double x, double y){
 
 } // namespace detail
 
-} // namespace thrust
-      
+THRUST_NAMESPACE_END
+

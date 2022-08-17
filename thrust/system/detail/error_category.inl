@@ -17,13 +17,14 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/system/error_code.h>
 #include <thrust/system/detail/errno.h>
 #include <thrust/functional.h>
 #include <cstring>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -99,7 +100,9 @@ class generic_error_category
 
       // XXX strerror is not thread-safe:
       //     prefer strerror_r (which is not provided on windows)
+      THRUST_DISABLE_MSVC_WARNING_BEGIN(4996)
       const char *c_str = std::strerror(ev);
+      THRUST_DISABLE_MSVC_WARNING_END(4996)
       return c_str ? std::string(c_str) : unknown_err;
     }
 }; // end generic_category_result
@@ -230,5 +233,5 @@ const error_category &system_category(void)
 
 } // end system
 
-} // end thrust
+THRUST_NAMESPACE_END
 

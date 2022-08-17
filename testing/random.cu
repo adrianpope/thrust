@@ -450,12 +450,21 @@ void TestRanlux48BaseEqual(void)
 DECLARE_UNITTEST(TestRanlux48BaseEqual);
 
 
+#if defined(__INTEL_COMPILER) && 1800 >= __INTEL_COMPILER
+void TestRanlux48BaseUnequal(void)
+{
+    // ICPC has a known failure with this test.
+    // See nvbug 200414000.
+    KNOWN_FAILURE;
+}
+#else
 void TestRanlux48BaseUnequal(void)
 {
   typedef thrust::random::ranlux48_base Engine;
 
   TestEngineUnequal<Engine>();
 }
+#endif
 DECLARE_UNITTEST(TestRanlux48BaseUnequal);
 
 
@@ -757,19 +766,29 @@ template<typename Distribution, typename Validator>
     // test Distribution with same range as engine
 
     // test host
-    thrust::generate(h.begin(), h.end(), Validator(Distribution(Engine::min, Engine::max)));
+    THRUST_DISABLE_MSVC_WARNING_BEGIN(4305)
+    thrust::generate(h.begin(), h.end(), Validator(
+        Distribution(Engine::min, Engine::max)
+    ));
+    THRUST_DISABLE_MSVC_WARNING_END(4305)
 
     ASSERT_EQUAL(true, h[0]);
 
     // test device
-    thrust::generate(d.begin(), d.end(), Validator(Distribution(Engine::min, Engine::max)));
+    THRUST_DISABLE_MSVC_WARNING_BEGIN(4305)
+    thrust::generate(d.begin(), d.end(), Validator(
+        Distribution(Engine::min, Engine::max)
+    ));
+    THRUST_DISABLE_MSVC_WARNING_END(4305)
 
     ASSERT_EQUAL(true, d[0]);
 
     // test Distribution with smaller range than engine
 
     // test host
+    THRUST_DISABLE_MSVC_WARNING_BEGIN(4305) // Truncation warning.
     typename Distribution::result_type engine_range = Engine::max - Engine::min;
+    THRUST_DISABLE_MSVC_WARNING_END(4305)
     thrust::generate(h.begin(), h.end(), Validator(Distribution(engine_range/3, (2 * engine_range)/3)));
 
     ASSERT_EQUAL(true, h[0]);

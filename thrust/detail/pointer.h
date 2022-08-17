@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,51 +14,60 @@
  *  limitations under the License.
  */
 
+/*! \file
+ *  \brief A pointer to a variable which resides in memory associated with a
+ *  system.
+ */
+
 #pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/iterator/iterator_adaptor.h>
 #include <thrust/iterator/detail/iterator_traversal_tags.h>
+#include <thrust/type_traits/remove_cvref.h>
 #include <thrust/detail/type_traits/pointer_traits.h>
 #include <thrust/detail/type_traits.h>
 #include <thrust/detail/reference_forward_declaration.h>
+#include <ostream>
+#include <cstddef>
 
-namespace thrust
+THRUST_NAMESPACE_BEGIN
+
+template <typename Element, typename Tag, typename Reference = use_default, typename Derived = use_default>
+class pointer;
+
+// Specialize `thrust::iterator_traits` to avoid problems with the name of
+// pointer's constructor shadowing its nested pointer type. We do this before
+// pointer is defined so the specialization is correctly used inside the
+// definition.
+template <typename Element, typename Tag, typename Reference, typename Derived>
+struct iterator_traits<thrust::pointer<Element, Tag, Reference, Derived>>
+{
+  using pointer           = thrust::pointer<Element, Tag, Reference, Derived>;
+  using iterator_category = typename pointer::iterator_category;
+  using value_type        = typename pointer::value_type;
+  using difference_type   = typename pointer::difference_type;
+  using reference         = typename pointer::reference;
+};
+
+THRUST_NAMESPACE_END
+
+namespace std
 {
 
-// declare pointer with default values of template parameters
-template<typename Element, typename Tag, typename Reference = use_default, typename Derived = use_default> class pointer;
-
-} // end thrust
-
-
-// specialize thrust::iterator_traits to avoid problems with the name of
-// pointer's constructor shadowing its nested pointer type
-// do this before pointer is defined so the specialization is correctly
-// used inside the definition
-namespace thrust
+template <typename Element, typename Tag, typename Reference, typename Derived>
+struct iterator_traits<THRUST_NS_QUALIFIER::pointer<Element, Tag, Reference, Derived>>
 {
+  using pointer           = THRUST_NS_QUALIFIER::pointer<Element, Tag, Reference, Derived>;
+  using iterator_category = typename pointer::iterator_category;
+  using value_type        = typename pointer::value_type;
+  using difference_type   = typename pointer::difference_type;
+  using reference         = typename pointer::reference;
+};
 
-template<typename Element, typename Tag, typename Reference, typename Derived>
-  struct iterator_traits<thrust::pointer<Element,Tag,Reference,Derived> >
-{
-  private:
-    typedef thrust::pointer<Element,Tag,Reference,Derived> ptr;
+} // namespace std
 
-  public:
-    typedef typename ptr::iterator_category iterator_category;
-    typedef typename ptr::value_type        value_type;
-    typedef typename ptr::difference_type   difference_type;
-    // XXX implement this type (the result of operator->) later
-    typedef void                             pointer;
-    typedef typename ptr::reference         reference;
-}; // end iterator_traits
-
-} // end thrust
-
-
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -70,7 +79,7 @@ template<typename Element, typename Tag, typename Reference, typename Derived>
   // void pointers should have no element type
   // note that we remove_cv from the Element type to get the value_type
   typedef typename thrust::detail::eval_if<
-    thrust::detail::is_void<typename thrust::detail::remove_const<Element>::type>::value,
+    thrust::detail::is_void<typename thrust::remove_cvref<Element>::type>::value,
     thrust::detail::identity_<void>,
     thrust::detail::remove_cv<Element>
   >::type value_type;
@@ -85,14 +94,14 @@ template<typename Element, typename Tag, typename Reference, typename Derived>
   // void pointers should have no reference type
   // if no Reference type is given, just use reference
   typedef typename thrust::detail::eval_if<
-    thrust::detail::is_void<typename thrust::detail::remove_const<Element>::type>::value,
+    thrust::detail::is_void<typename thrust::remove_cvref<Element>::type>::value,
     thrust::detail::identity_<void>,
     thrust::detail::eval_if<
       thrust::detail::is_same<Reference,use_default>::value,
       thrust::detail::identity_<reference<Element,derived_type> >,
       thrust::detail::identity_<Reference>
     >
-  >::type reference_arg;
+  >::type reference_type;
 
   typedef thrust::iterator_adaptor<
     derived_type,                        // pass along the type of our Derived class to iterator_adaptor
@@ -100,7 +109,7 @@ template<typename Element, typename Tag, typename Reference, typename Derived>
     value_type,                          // the value type
     Tag,                                 // system tag
     thrust::random_access_traversal_tag, // pointers have random access traversal
-    reference_arg,                       // pass along our Reference type
+    reference_type,                      // pass along our Reference type
     std::ptrdiff_t
   > type;
 }; // end pointer_base
@@ -114,7 +123,8 @@ template<typename Element, typename Tag, typename Reference, typename Derived>
 // 1. no-argument constructor
 // 2. constructor from OtherElement *
 // 3. constructor from OtherPointer related by convertibility
-// 4. assignment from OtherPointer related by convertibility
+// 4. constructor from OtherPointer to void
+// 5. assignment from OtherPointer related by convertibility
 // These should just call the corresponding members of pointer.
 template<typename Element, typename Tag, typename Reference, typename Derived>
   class pointer
@@ -139,9 +149,14 @@ template<typename Element, typename Tag, typename Reference, typename Derived>
     typedef typename super_t::base_type raw_pointer;
 
     // constructors
-    
+
     __host__ __device__
     pointer();
+
+    // NOTE: This is needed so that Thrust smart pointers can be used in
+    // `std::unique_ptr`.
+    __host__ __device__
+    pointer(std::nullptr_t);
 
     // OtherValue shall be convertible to Value
     // XXX consider making the pointer implementation a template parameter which defaults to Element *
@@ -159,8 +174,24 @@ template<typename Element, typename Tag, typename Reference, typename Derived>
               pointer<Element,Tag,Reference,Derived>
             >::type * = 0);
 
+    // OtherPointer's element_type shall be void
+    // OtherPointer's system shall be convertible to Tag
+    template<typename OtherPointer>
+    __host__ __device__
+    explicit
+    pointer(const OtherPointer &other,
+            typename thrust::detail::enable_if_void_pointer_is_system_convertible<
+              OtherPointer,
+              pointer<Element,Tag,Reference,Derived>
+            >::type * = 0);
+
     // assignment
-    
+
+    // NOTE: This is needed so that Thrust smart pointers can be used in
+    // `std::unique_ptr`.
+    __host__ __device__
+    derived_type& operator=(std::nullptr_t);
+
     // OtherPointer's element_type shall be convertible to Element
     // OtherPointer's system shall be convertible to Tag
     template<typename OtherPointer>
@@ -176,9 +207,49 @@ template<typename Element, typename Tag, typename Reference, typename Derived>
 
     __host__ __device__
     Element *get() const;
+
+    __host__ __device__
+    Element *operator->() const;
+
+    // NOTE: This is needed so that Thrust smart pointers can be used in
+    // `std::unique_ptr`.
+    __host__ __device__
+    explicit operator bool() const;
+
+    __host__ __device__
+    static derived_type pointer_to(typename thrust::detail::pointer_traits_detail::pointer_to_param<Element>::type r)
+    {
+      return thrust::detail::pointer_traits<derived_type>::pointer_to(r);
+    }
 }; // end pointer
 
-} // end thrust
+// Output stream operator
+template<typename Element, typename Tag, typename Reference, typename Derived,
+         typename charT, typename traits>
+__host__
+std::basic_ostream<charT, traits> &
+operator<<(std::basic_ostream<charT, traits> &os,
+           const pointer<Element, Tag, Reference, Derived> &p);
+
+// NOTE: This is needed so that Thrust smart pointers can be used in
+// `std::unique_ptr`.
+template <typename Element, typename Tag, typename Reference, typename Derived>
+__host__ __device__
+bool operator==(std::nullptr_t, pointer<Element, Tag, Reference, Derived> p);
+
+template <typename Element, typename Tag, typename Reference, typename Derived>
+__host__ __device__
+bool operator==(pointer<Element, Tag, Reference, Derived> p, std::nullptr_t);
+
+template <typename Element, typename Tag, typename Reference, typename Derived>
+__host__ __device__
+bool operator!=(std::nullptr_t, pointer<Element, Tag, Reference, Derived> p);
+
+template <typename Element, typename Tag, typename Reference, typename Derived>
+__host__ __device__
+bool operator!=(pointer<Element, Tag, Reference, Derived> p, std::nullptr_t);
+
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/pointer.inl>
 

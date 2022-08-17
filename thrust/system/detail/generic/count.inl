@@ -14,13 +14,14 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/generic/count.h>
 #include <thrust/transform_reduce.h>
 #include <thrust/detail/internal_functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -32,9 +33,10 @@ namespace generic
 template <typename InputType, typename Predicate, typename CountType>
 struct count_if_transform
 {
-  __host__ __device__ 
+  __host__ __device__
   count_if_transform(Predicate _pred) : pred(_pred){}
 
+  __thrust_exec_check_disable__
   __host__ __device__
   CountType operator()(const InputType& val)
   {
@@ -53,8 +55,9 @@ __host__ __device__
 typename thrust::iterator_traits<InputIterator>::difference_type
 count(thrust::execution_policy<DerivedPolicy> &exec, InputIterator first, InputIterator last, const EqualityComparable& value)
 {
-  // XXX use placeholder expression here
-  return thrust::count_if(exec, first, last, thrust::detail::equal_to_value<EqualityComparable>(value));
+  using thrust::placeholders::_1;
+
+  return thrust::count_if(exec, first, last, _1 == value);
 } // end count()
 
 
@@ -65,7 +68,7 @@ count_if(thrust::execution_policy<DerivedPolicy> &exec, InputIterator first, Inp
 {
   typedef typename thrust::iterator_traits<InputIterator>::value_type InputType;
   typedef typename thrust::iterator_traits<InputIterator>::difference_type CountType;
-  
+
   thrust::system::detail::generic::count_if_transform<InputType, Predicate, CountType> unary_op(pred);
   thrust::plus<CountType> binary_op;
   return thrust::transform_reduce(exec, first, last, unary_op, CountType(0), binary_op);
@@ -75,5 +78,5 @@ count_if(thrust::execution_policy<DerivedPolicy> &exec, InputIterator first, Inp
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -23,10 +23,9 @@
 #include <thrust/system/detail/generic/memory.h>
 #include <thrust/system/detail/adl/malloc_and_free.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy>
 __host__ __device__
 pointer<void,DerivedPolicy> malloc(const thrust::detail::execution_policy_base<DerivedPolicy> &exec, std::size_t n)
@@ -39,7 +38,7 @@ pointer<void,DerivedPolicy> malloc(const thrust::detail::execution_policy_base<D
   return pointer<void,DerivedPolicy>(raw_ptr);
 }
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename T, typename DerivedPolicy>
 __host__ __device__
 pointer<T,DerivedPolicy> malloc(const thrust::detail::execution_policy_base<DerivedPolicy> &exec, std::size_t n)
@@ -54,7 +53,7 @@ pointer<T,DerivedPolicy> malloc(const thrust::detail::execution_policy_base<Deri
 
 // XXX WAR nvbug 992955
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
-#if CUDA_VERSION < 5000
+#if CUDART_VERSION < 5000
 
 // cudafe generates unqualified calls to free(int *volatile)
 // which get confused with thrust::free
@@ -65,10 +64,10 @@ void free(int *volatile ptr)
   ::free(ptr);
 }
 
-#endif // CUDA_VERSION
+#endif // CUDART_VERSION
 #endif // THRUST_DEVICE_COMPILER
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename Pointer>
 __host__ __device__
 void free(const thrust::detail::execution_policy_base<DerivedPolicy> &exec, Pointer ptr)
@@ -81,5 +80,4 @@ void free(const thrust::detail::execution_policy_base<DerivedPolicy> &exec, Poin
 // XXX consider another form of free which does not take a system argument and
 // instead infers the system from the pointer
 
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

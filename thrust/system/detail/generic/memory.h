@@ -28,10 +28,8 @@
 #include <thrust/detail/type_traits.h>
 #include <thrust/detail/pointer.h>
 #include <thrust/pair.h>
-#include <thrust/system/detail/generic/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -59,14 +57,14 @@ template<typename DerivedPolicy, typename Pointer>
 __host__ __device__
 void get_value(thrust::execution_policy<DerivedPolicy> &, Pointer);
 
-template<typename Pointer1, typename Pointer2>
+template<typename DerivedPolicy, typename Pointer1, typename Pointer2>
 __host__ __device__
-void iter_swap(tag, Pointer1, Pointer2);
+void iter_swap(thrust::execution_policy<DerivedPolicy>&, Pointer1, Pointer2);
 
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/detail/generic/memory.inl>
 

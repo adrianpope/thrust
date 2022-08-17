@@ -16,14 +16,15 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/detail/numeric_traits.h>
 #include <thrust/detail/type_traits.h>
 #include <cstddef>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // forward declaration of counting_iterator
 template <typename Incrementable, typename System, typename Traversal, typename Difference>
@@ -69,7 +70,7 @@ template <typename Incrementable, typename System, typename Traversal, typename 
   // our implementation departs from Boost's in that counting_iterator::dereference
   // returns a copy of its counter, rather than a reference to it. returning a reference
   // to the internal state of an iterator causes subtle bugs (consider the temporary
-  // iterator created in the expression *(iter + i) ) and has no compelling use case
+  // iterator created in the expression *(iter + i)) and has no compelling use case
   typedef thrust::iterator_adaptor<
     counting_iterator<Incrementable, System, Traversal, Difference>, // self
     Incrementable,                                                  // Base
@@ -137,5 +138,5 @@ template<typename Difference, typename Incrementable1, typename Incrementable2>
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

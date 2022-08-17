@@ -52,7 +52,7 @@ void TestPermutationIteratorSimple(void)
     ASSERT_EQUAL(source[6],  7);
     ASSERT_EQUAL(source[7],  8);
 }
-DECLARE_VECTOR_UNITTEST(TestPermutationIteratorSimple);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestPermutationIteratorSimple);
 
 template <class Vector>
 void TestPermutationIteratorGather(void)
@@ -80,7 +80,7 @@ void TestPermutationIteratorGather(void)
     ASSERT_EQUAL(output[2], 6);
     ASSERT_EQUAL(output[3], 8);
 }
-DECLARE_VECTOR_UNITTEST(TestPermutationIteratorGather);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestPermutationIteratorGather);
 
 template <class Vector>
 void TestPermutationIteratorScatter(void)
@@ -113,13 +113,11 @@ void TestPermutationIteratorScatter(void)
     ASSERT_EQUAL(output[6],  7);
     ASSERT_EQUAL(output[7], 10);
 }
-DECLARE_VECTOR_UNITTEST(TestPermutationIteratorScatter);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestPermutationIteratorScatter);
 
 template <class Vector>
 void TestMakePermutationIterator(void)
 {
-    typedef typename Vector::iterator Iterator;
-
     Vector source(8);
     Vector indices(4);
     Vector output(4, 10);
@@ -141,7 +139,7 @@ void TestMakePermutationIterator(void)
     ASSERT_EQUAL(output[2], 6);
     ASSERT_EQUAL(output[3], 8);
 }
-DECLARE_VECTOR_UNITTEST(TestMakePermutationIterator);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestMakePermutationIterator);
 
 template <typename Vector>
 void TestPermutationIteratorReduce(void)
@@ -176,7 +174,7 @@ void TestPermutationIteratorReduce(void)
                                          thrust::plus<T>());
     ASSERT_EQUAL(result2, -19);
 };
-DECLARE_VECTOR_UNITTEST(TestPermutationIteratorReduce);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestPermutationIteratorReduce);
 
 void TestPermutationIteratorHostDeviceGather(void)
 {
@@ -281,18 +279,20 @@ DECLARE_UNITTEST(TestPermutationIteratorHostDeviceScatter);
 template <typename Vector>
 void TestPermutationIteratorWithCountingIterator(void)
 {
-  typedef typename Vector::value_type T;
-  typedef typename Vector::iterator Iterator;
+  using T = typename Vector::value_type;
+  using diff_t = typename thrust::counting_iterator<T>::difference_type;
   
-  typename thrust::counting_iterator<T> input(0), index(0);
+  thrust::counting_iterator<T> input(0), index(0);
 
   // test copy()
   {
     Vector output(4,0);
 
-    thrust::copy(thrust::make_permutation_iterator(input, index),
-                 thrust::make_permutation_iterator(input, index + output.size()),
-                 output.begin());
+    auto first = thrust::make_permutation_iterator(input, index);
+    auto last  = thrust::make_permutation_iterator(input,
+                                                   index + static_cast<diff_t>(output.size()));
+
+    thrust::copy(first, last, output.begin());
 
     ASSERT_EQUAL(output[0], 0);
     ASSERT_EQUAL(output[1], 1);
@@ -315,5 +315,5 @@ void TestPermutationIteratorWithCountingIterator(void)
     ASSERT_EQUAL(output[3], 3);
   }
 }
-DECLARE_VECTOR_UNITTEST(TestPermutationIteratorWithCountingIterator);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestPermutationIteratorWithCountingIterator);
 

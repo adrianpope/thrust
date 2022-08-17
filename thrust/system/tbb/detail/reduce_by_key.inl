@@ -27,12 +27,12 @@
 #include <thrust/detail/range/tail_flags.h>
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
-#include <tbb/tbb_thread.h>
+
 #include <cassert>
+#include <thread>
 
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -81,7 +81,7 @@ template<typename InputIterator1,
   thrust::pair<
     InputIterator1,
     thrust::pair<
-      typename InputIterator1::value_type,
+      typename thrust::iterator_value<InputIterator1>::type,
       typename partial_sum_type<InputIterator2,BinaryFunction>::type
     >
   >
@@ -98,7 +98,7 @@ template<typename InputIterator1,
   thrust::reverse_iterator<InputIterator1> keys_last_r(keys_first);
   thrust::reverse_iterator<InputIterator2> values_first_r(values_first + n);
 
-  typename InputIterator1::value_type result_key = *keys_first_r;
+  typename thrust::iterator_value<InputIterator1>::type result_key = *keys_first_r;
   typename partial_sum_type<InputIterator2,BinaryFunction>::type result_value = *values_first_r;
 
   // consume the entirety of the first key's sequence
@@ -122,7 +122,7 @@ template<typename InputIterator1,
   thrust::tuple<
     OutputIterator1,
     OutputIterator2,
-    typename InputIterator1::value_type,
+    typename thrust::iterator_value<InputIterator1>::type,
     typename partial_sum_type<InputIterator2,BinaryFunction>::type
   >
     reduce_by_key_with_carry(InputIterator1 keys_first, 
@@ -136,7 +136,7 @@ template<typename InputIterator1,
   // first, consume the last sequence to produce the carry
   // XXX is there an elegant way to pose this such that we don't need to default construct carry?
   thrust::pair<
-    typename InputIterator1::value_type,
+    typename thrust::iterator_value<InputIterator1>::type,
     typename partial_sum_type<InputIterator2,BinaryFunction>::type
   > carry;
 
@@ -198,7 +198,7 @@ template<typename Iterator1, typename Iterator2, typename Iterator3, typename It
     const size_type interval_idx = r.begin();
 
     const size_type offset_to_first = interval_size * interval_idx;
-    const size_type offset_to_last = thrust::min(n, offset_to_first + interval_size);
+    const size_type offset_to_last = (thrust::min)(n, offset_to_first + interval_size);
 
     Iterator1 my_keys_first     = keys_first    + offset_to_first;
     Iterator1 my_keys_last      = keys_first    + offset_to_last;
@@ -281,7 +281,7 @@ template<typename DerivedPolicy, typename Iterator1, typename Iterator2, typenam
   }
 
   // count the number of processors
-  const unsigned int p = thrust::max<unsigned int>(1u, ::tbb::tbb_thread::hardware_concurrency());
+  const unsigned int p = thrust::max<unsigned int>(1u, std::thread::hardware_concurrency());
 
   // generate O(P) intervals of sequential work
   // XXX oversubscribing is a tuning opportunity
@@ -337,5 +337,5 @@ template<typename DerivedPolicy, typename Iterator1, typename Iterator2, typenam
 } // end detail
 } // end tbb
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

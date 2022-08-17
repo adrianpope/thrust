@@ -18,8 +18,7 @@
 
 #include <thrust/detail/config.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -28,7 +27,7 @@ namespace sequential
 {
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename BidirectionalIterator1,
          typename BidirectionalIterator2>
 __host__ __device__
@@ -50,5 +49,5 @@ BidirectionalIterator2 copy_backward(BidirectionalIterator1 first,
 } // end namespace sequential
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2018 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,20 +17,20 @@
 #pragma once
 
 #include <thrust/detail/config.h>
-#include <thrust/detail/execution_policy.h>
-#include <thrust/detail/execute_with_allocator.h>
+#include <thrust/detail/allocator_aware_execution_policy.h>
 #include <thrust/system/detail/sequential/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
 
-struct seq_t : thrust::system::detail::sequential::execution_policy<seq_t>
+struct seq_t : thrust::system::detail::sequential::execution_policy<seq_t>,
+  thrust::detail::allocator_aware_execution_policy<
+    thrust::system::detail::sequential::execution_policy>
 {
   __host__ __device__
-  seq_t() : thrust::system::detail::sequential::execution_policy<seq_t>() {}
+  constexpr seq_t() : thrust::system::detail::sequential::execution_policy<seq_t>() {}
 
   // allow any execution_policy to convert to seq_t
   template<typename DerivedPolicy>
@@ -38,26 +38,15 @@ struct seq_t : thrust::system::detail::sequential::execution_policy<seq_t>
   seq_t(const thrust::execution_policy<DerivedPolicy> &)
     : thrust::system::detail::sequential::execution_policy<seq_t>()
   {}
-
-  template<typename Allocator>
-    thrust::detail::execute_with_allocator<Allocator, thrust::system::detail::sequential::execution_policy>
-      operator()(Allocator &alloc) const
-  {
-    return thrust::detail::execute_with_allocator<Allocator, thrust::system::detail::sequential::execution_policy>(alloc);
-  }
 };
 
 
 } // end detail
 
 
-#ifdef __CUDA_ARCH__
-static const __device__ detail::seq_t seq;
-#else
-static const detail::seq_t seq;
-#endif
+THRUST_INLINE_CONSTANT detail::seq_t seq;
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 

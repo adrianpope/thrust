@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2022 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
 
 #pragma once
 
-//  This is the only Thrust header that is guaranteed to 
+//  This is the only Thrust header that is guaranteed to
 //  change with every Thrust release.
 //
 //  THRUST_VERSION % 100 is the sub-minor version
@@ -47,7 +47,7 @@
  *         <tt>THRUST_VERSION / 100 % 1000</tt> is the minor version.
  *         <tt>THRUST_VERSION / 100000</tt> is the major version.
  */
-#define THRUST_VERSION 100900
+#define THRUST_VERSION 200100
 
 /*! \def THRUST_MAJOR_VERSION
  *  \brief The preprocessor macro \p THRUST_MAJOR_VERSION encodes the
@@ -67,14 +67,9 @@
  */
 #define THRUST_SUBMINOR_VERSION  (THRUST_VERSION % 100)
 
-// Declare these namespaces here for the purpose of Doxygenating them
-
-/*! \namespace thrust
- *  \brief \p thrust is the top-level namespace which contains all Thrust
- *         functions and types.
+/*! \def THRUST_PATCH_NUMBER
+ *  \brief The preprocessor macro \p THRUST_PATCH_NUMBER encodes the
+ *         patch number of the Thrust library.
+ *         Legacy; will be 0 for all future releases.
  */
-namespace thrust
-{
-
-}
-
+#define THRUST_PATCH_NUMBER 0

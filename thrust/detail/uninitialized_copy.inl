@@ -14,10 +14,9 @@
  *  limitations under the License.
  */
 
+#pragma once
 
-/*! \file uninitialized_copy.inl
- *  \brief Inline file for uninitialized_copy.h.
- */
+#include <thrust/detail/config.h>
 
 #include <thrust/uninitialized_copy.h>
 #include <thrust/iterator/iterator_traits.h>
@@ -25,11 +24,10 @@
 #include <thrust/system/detail/generic/uninitialized_copy.h>
 #include <thrust/system/detail/adl/uninitialized_copy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename InputIterator, typename ForwardIterator>
 __host__ __device__
   ForwardIterator uninitialized_copy(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -42,7 +40,7 @@ __host__ __device__
 } // end uninitialized_copy()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename InputIterator, typename Size, typename ForwardIterator>
 __host__ __device__
   ForwardIterator uninitialized_copy_n(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -92,6 +90,6 @@ template<typename InputIterator,
 } // end uninitialized_copy_n()
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 

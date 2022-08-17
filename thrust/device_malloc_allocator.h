@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2018 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,9 +14,8 @@
  *  limitations under the License.
  */
 
-
-/*! \file device_malloc_allocator.h
- *  \brief An allocator which allocates storage with \p device_malloc
+/*! \file 
+ *  \brief An allocator which allocates storage with \p device_malloc.
  */
 
 #pragma once
@@ -29,15 +28,13 @@
 #include <limits>
 #include <stdexcept>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // forward declarations to WAR circular #includes
 template<typename> class device_ptr;
 template<typename T> device_ptr<T> device_malloc(const std::size_t n);
 
-/*! \addtogroup memory_management Memory Management
- *  \addtogroup memory_management_classes Memory Management Classes
+/*! \addtogroup allocators Allocators 
  *  \ingroup memory_management
  *  \{
  */
@@ -45,9 +42,13 @@ template<typename T> device_ptr<T> device_malloc(const std::size_t n);
 /*! \p device_malloc_allocator is a device memory allocator that employs the
  *  \p device_malloc function for allocation.
  *
+ *  \p device_malloc_allocator is deprecated in favor of <tt>thrust::mr</tt>
+ *      memory resource-based allocators.
+ *
  *  \see device_malloc
  *  \see device_ptr
- *  \see http://www.sgi.com/tech/stl/Allocators.html
+ *  \see device_allocator
+ *  \see https://en.cppreference.com/w/cpp/memory/allocator
  */
 template<typename T>
   class device_malloc_allocator
@@ -104,12 +105,16 @@ template<typename T>
     __host__ __device__
     inline device_malloc_allocator(device_malloc_allocator<U> const&) {}
 
+#if THRUST_CPP_DIALECT >= 2011
+    device_malloc_allocator & operator=(const device_malloc_allocator &) = default;
+#endif
+
     /*! Returns the address of an allocated object.
      *  \return <tt>&r</tt>.
      */
     __host__ __device__
     inline pointer address(reference r) { return &r; }
-    
+
     /*! Returns the address an allocated object.
      *  \return <tt>&r</tt>.
      */
@@ -142,6 +147,9 @@ template<typename T>
     __host__
     inline void deallocate(pointer p, size_type cnt)
     {
+      // silence unused parameter warning while still leaving the parameter name for Doxygen
+      (void)(cnt);
+
       device_free(p);
     } // end deallocate()
 
@@ -157,18 +165,16 @@ template<typename T>
      *  \return \c true
      */
     __host__ __device__
-    inline bool operator==(device_malloc_allocator const&) { return true; }
+    inline bool operator==(device_malloc_allocator const&) const { return true; }
 
     /*! Compares against another \p device_malloc_allocator for inequality.
      *  \return \c false
      */
     __host__ __device__
-    inline bool operator!=(device_malloc_allocator const &a) {return !operator==(a); }
+    inline bool operator!=(device_malloc_allocator const &a) const {return !operator==(a); }
 }; // end device_malloc_allocator
 
-/*! \}
+/*! \} // allocators
  */
 
-} // end thrust
-
-
+THRUST_NAMESPACE_END

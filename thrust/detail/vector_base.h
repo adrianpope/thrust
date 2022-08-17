@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2018 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@
 #include <thrust/iterator/reverse_iterator.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/detail/type_traits.h>
+#include <thrust/detail/config.h>
 #include <thrust/detail/contiguous_storage.h>
 #include <vector>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -62,11 +62,23 @@ template<typename T, typename Alloc>
      */
     vector_base(void);
 
+    /*! This constructor creates an empty vector_base.
+     *  \param alloc The allocator to use by this vector_base.
+     */
+    explicit vector_base(const Alloc &alloc);
+
     /*! This constructor creates a vector_base with default-constructed
      *  elements.
      *  \param n The number of elements to create.
      */
     explicit vector_base(size_type n);
+
+    /*! This constructor creates a vector_base with default-constructed
+     *  elements.
+     *  \param n The number of elements to create.
+     *  \param alloc The allocator to use by this vector_base.
+     */
+    explicit vector_base(size_type n, const Alloc &alloc);
 
     /*! This constructor creates a vector_base with copies
      *  of an exemplar element.
@@ -75,15 +87,48 @@ template<typename T, typename Alloc>
      */
     explicit vector_base(size_type n, const value_type &value);
 
+    /*! This constructor creates a vector_base with copies
+     *  of an exemplar element.
+     *  \param n The number of elements to initially create.
+     *  \param value An element to copy.
+     *  \param alloc The allocator to use by this vector_base.
+     */
+    explicit vector_base(size_type n, const value_type &value, const Alloc &alloc);
+
     /*! Copy constructor copies from an exemplar vector_base.
      *  \param v The vector_base to copy.
      */
     vector_base(const vector_base &v);
 
-    /*! assign operator makes a copy of an exemplar vector_base.
+    /*! Copy constructor copies from an exemplar vector_base.
+     *  \param v The vector_base to copy.
+     *  \param alloc The allocator to use by this vector_base.
+     */
+    vector_base(const vector_base &v, const Alloc &alloc);
+
+  #if THRUST_CPP_DIALECT >= 2011
+    /*! Move constructor moves from another vector_base.
+     *  \param v The vector_base to move.
+     */
+    vector_base(vector_base &&v);
+
+    // FIXME: the internal Thrust machinery in range_init doesn't work with move
+    // iterators, which is necessary for the following constructor to be implemented
+    // correctly
+    // vector_base(vector_base &&v, const Alloc &alloc);
+  #endif
+
+    /*! Copy assign operator copies from another vector_base.
      *  \param v The vector_base to copy.
      */
     vector_base &operator=(const vector_base &v);
+
+  #if THRUST_CPP_DIALECT >= 2011
+    /*! Move assign operator moves from another vector_base.
+     *  \param v The vector_base to move.
+     */
+    vector_base &operator=(vector_base &&v);
+  #endif
 
     /*! Copy constructor copies from an exemplar vector_base with different
      *  type.
@@ -123,6 +168,14 @@ template<typename T, typename Alloc>
      */
     template<typename InputIterator>
     vector_base(InputIterator first, InputIterator last);
+
+    /*! This constructor builds a vector_base from a range.
+     *  \param first The beginning of the range.
+     *  \param last The end of the range.
+     *  \param alloc The allocator to use by this vector_base.
+     */
+    template<typename InputIterator>
+    vector_base(InputIterator first, InputIterator last, const Alloc &alloc);
 
     /*! The destructor erases the elements.
      */
@@ -368,8 +421,8 @@ template<typename T, typename Alloc>
      *  \param first The beginning of the range to copy.
      *  \param last  The end of the range to copy.
      *
-     *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html>Input Iterator</a>,
-     *                        and \p InputIterator's \c value_type is a model of <a href="http://www.sgi.com/tech/stl/Assignable.html">Assignable</a>.
+     *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator>Input Iterator</a>,
+     *                        and \p InputIterator's \c value_type is a model of <a href="https://en.cppreference.com/w/cpp/named_req/CopyAssignable">Assignable</a>.
      */
     template<typename InputIterator>
     void insert(iterator position, InputIterator first, InputIterator last);
@@ -385,7 +438,7 @@ template<typename T, typename Alloc>
      *  \param first The beginning of the range to copy.
      *  \param last  The end of the range to copy.
      *
-     *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator">Input Iterator</a>.
+     *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/named_req/InputIterator">Input Iterator</a>.
      */
     template<typename InputIterator>
     void assign(InputIterator first, InputIterator last);
@@ -528,7 +581,7 @@ template<typename T1, typename Alloc1,
 bool operator!=(const std::vector<T1,Alloc1>&         lhs,
                 const detail::vector_base<T2,Alloc2>& rhs);
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/vector_base.inl>
 

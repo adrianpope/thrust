@@ -16,14 +16,15 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/reduce.h>
 #include <thrust/system/detail/generic/reduce.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/functional.h>
 #include <thrust/detail/static_assert.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -58,14 +59,16 @@ template<typename ExecutionPolicy,
          typename OutputType,
          typename BinaryFunction>
 __host__ __device__
-  OutputType reduce(thrust::execution_policy<ExecutionPolicy> &exec,
-                    RandomAccessIterator first,
-                    RandomAccessIterator last,
-                    OutputType init,
-                    BinaryFunction binary_op)
+  OutputType reduce(thrust::execution_policy<ExecutionPolicy> &,
+                    RandomAccessIterator,
+                    RandomAccessIterator,
+                    OutputType,
+                    BinaryFunction)
 {
-  // unimplemented
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<RandomAccessIterator, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<RandomAccessIterator, false>::value)
+  , "unimplemented for this system"
+  );
   return OutputType();
 } // end reduce()
 
@@ -73,5 +76,5 @@ __host__ __device__
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

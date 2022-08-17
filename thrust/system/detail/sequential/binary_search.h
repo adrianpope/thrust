@@ -21,13 +21,14 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/advance.h>
 #include <thrust/distance.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/detail/function.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -36,7 +37,7 @@ namespace sequential
 {
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy,
          typename ForwardIterator,
          typename T,
@@ -81,7 +82,7 @@ ForwardIterator lower_bound(sequential::execution_policy<DerivedPolicy> &,
 }
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy,
          typename ForwardIterator,
          typename T,
@@ -126,7 +127,7 @@ ForwardIterator upper_bound(sequential::execution_policy<DerivedPolicy> &,
 }
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy,
          typename ForwardIterator,
          typename T,
@@ -153,5 +154,5 @@ bool binary_search(sequential::execution_policy<DerivedPolicy> &exec,
 } // end namespace sequential
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

@@ -1,6 +1,7 @@
 #include <unittest/unittest.h>
 #include <thrust/binary_search.h>
 
+#include <thrust/detail/allocator/allocator_traits.h>
 #include <thrust/sequence.h>
 #include <thrust/sort.h>
 #include <thrust/iterator/discard_iterator.h>
@@ -16,15 +17,14 @@ template <class ExampleVector, typename NewType>
 struct vector_like
 {
     typedef typename ExampleVector::allocator_type alloc;
-    typedef typename alloc::template rebind<NewType>::other new_alloc;
+    typedef typename thrust::detail::allocator_traits<alloc> alloc_traits;
+    typedef typename alloc_traits::template rebind_alloc<NewType> new_alloc;
     typedef thrust::detail::vector_base<NewType, new_alloc> type;
 };
 
 template <class Vector>
 void TestVectorLowerBoundSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector vec(5);
 
     vec[0] = 0;
@@ -36,7 +36,8 @@ void TestVectorLowerBoundSimple(void)
     Vector input(10);
     thrust::sequence(input.begin(), input.end());
 
-    typedef typename vector_like<Vector, int>::type IntVector;
+    typedef typename Vector::difference_type int_type;
+    typedef typename vector_like<Vector, int_type>::type IntVector;
 
     // test with integral output type
     IntVector integral_output(10);
@@ -125,8 +126,6 @@ DECLARE_UNITTEST(TestVectorLowerBoundDispatchImplicit);
 template <class Vector>
 void TestVectorUpperBoundSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector vec(5);
 
     vec[0] = 0;
@@ -138,7 +137,8 @@ void TestVectorUpperBoundSimple(void)
     Vector input(10);
     thrust::sequence(input.begin(), input.end());
 
-    typedef typename vector_like<Vector, int>::type IntVector;
+    typedef typename Vector::difference_type int_type;
+    typedef typename vector_like<Vector, int_type>::type IntVector;
 
     // test with integral output type
     IntVector integral_output(10);
@@ -225,8 +225,6 @@ DECLARE_UNITTEST(TestVectorUpperBoundDispatchImplicit);
 template <class Vector>
 void TestVectorBinarySearchSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector vec(5);
 
     vec[0] = 0;
@@ -239,7 +237,8 @@ void TestVectorBinarySearchSimple(void)
     thrust::sequence(input.begin(), input.end());
 
     typedef typename vector_like<Vector, bool>::type BoolVector;
-    typedef typename vector_like<Vector,  int>::type IntVector;
+    typedef typename Vector::difference_type int_type;
+    typedef typename vector_like<Vector,  int_type>::type IntVector;
 
     // test with boolean output type
     BoolVector bool_output(10);
@@ -335,8 +334,9 @@ struct TestVectorLowerBound
     thrust::host_vector<T>   h_input = unittest::random_integers<T>(2*n);
     thrust::device_vector<T> d_input = h_input;
     
-    thrust::host_vector<int>   h_output(2*n);
-    thrust::device_vector<int> d_output(2*n);
+    typedef typename thrust::host_vector<T>::difference_type int_type;
+    thrust::host_vector<int_type>   h_output(2*n);
+    thrust::device_vector<int_type> d_output(2*n);
 
     thrust::lower_bound(h_vec.begin(), h_vec.end(), h_input.begin(), h_input.end(), h_output.begin());
     thrust::lower_bound(d_vec.begin(), d_vec.end(), d_input.begin(), d_input.end(), d_output.begin());
@@ -358,8 +358,9 @@ struct TestVectorUpperBound
     thrust::host_vector<T>   h_input = unittest::random_integers<T>(2*n);
     thrust::device_vector<T> d_input = h_input;
     
-    thrust::host_vector<int>   h_output(2*n);
-    thrust::device_vector<int> d_output(2*n);
+    typedef typename thrust::host_vector<T>::difference_type int_type;
+    thrust::host_vector<int_type>   h_output(2*n);
+    thrust::device_vector<int_type> d_output(2*n);
 
     thrust::upper_bound(h_vec.begin(), h_vec.end(), h_input.begin(), h_input.end(), h_output.begin());
     thrust::upper_bound(d_vec.begin(), d_vec.end(), d_input.begin(), d_input.end(), d_output.begin());
@@ -380,8 +381,9 @@ struct TestVectorBinarySearch
     thrust::host_vector<T>   h_input = unittest::random_integers<T>(2*n);
     thrust::device_vector<T> d_input = h_input;
     
-    thrust::host_vector<int>   h_output(2*n);
-    thrust::device_vector<int> d_output(2*n);
+    typedef typename thrust::host_vector<T>::difference_type int_type;
+    thrust::host_vector<int_type>   h_output(2*n);
+    thrust::device_vector<int_type> d_output(2*n);
 
     thrust::binary_search(h_vec.begin(), h_vec.end(), h_input.begin(), h_input.end(), h_output.begin());
     thrust::binary_search(d_vec.begin(), d_vec.end(), d_input.begin(), d_input.end(), d_output.begin());

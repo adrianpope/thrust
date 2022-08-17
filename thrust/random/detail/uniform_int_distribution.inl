@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,18 +14,22 @@
  *  limitations under the License.
  */
 
+#pragma once
+
+#include <thrust/detail/config.h>
+
 #include <thrust/random/uniform_int_distribution.h>
 #include <thrust/random/uniform_real_distribution.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
 
 
 template<typename IntType>
+  __host__ __device__
   uniform_int_distribution<IntType>
     ::uniform_int_distribution(IntType a, IntType b)
       :m_param(a,b)
@@ -34,6 +38,7 @@ template<typename IntType>
 
 
 template<typename IntType>
+  __host__ __device__
   uniform_int_distribution<IntType>
     ::uniform_int_distribution(const param_type &parm)
       :m_param(parm)
@@ -42,6 +47,7 @@ template<typename IntType>
 
 
 template<typename IntType>
+  __host__ __device__
   void uniform_int_distribution<IntType>
     ::reset(void)
 {
@@ -50,6 +56,7 @@ template<typename IntType>
 
 template<typename IntType>
   template<typename UniformRandomNumberGenerator>
+    __host__ __device__
     typename uniform_int_distribution<IntType>::result_type
       uniform_int_distribution<IntType>
         ::operator()(UniformRandomNumberGenerator &urng)
@@ -60,6 +67,7 @@ template<typename IntType>
 
 template<typename IntType>
   template<typename UniformRandomNumberGenerator>
+    __host__ __device__
     typename uniform_int_distribution<IntType>::result_type
       uniform_int_distribution<IntType>
         ::operator()(UniformRandomNumberGenerator &urng, const param_type &parm)
@@ -70,8 +78,8 @@ template<typename IntType>
 
   typedef typename thrust::detail::largest_available_float::type float_type;
 
-  const float_type real_min(parm.first);
-  const float_type real_max(parm.second);
+  const float_type real_min(static_cast<float_type>(parm.first));
+  const float_type real_max(static_cast<float_type>(parm.second));
 
   // add one to the right end of the interval because it is half-open
   // XXX adding 1.0 to a potentially large floating point number seems like a bad idea
@@ -82,6 +90,7 @@ template<typename IntType>
 
 
 template<typename IntType>
+  __host__ __device__
   typename uniform_int_distribution<IntType>::result_type
     uniform_int_distribution<IntType>
       ::a(void) const
@@ -91,6 +100,7 @@ template<typename IntType>
 
 
 template<typename IntType>
+  __host__ __device__
   typename uniform_int_distribution<IntType>::result_type
     uniform_int_distribution<IntType>
       ::b(void) const
@@ -100,6 +110,7 @@ template<typename IntType>
 
 
 template<typename IntType>
+  __host__ __device__
   typename uniform_int_distribution<IntType>::param_type
     uniform_int_distribution<IntType>
       ::param(void) const
@@ -109,6 +120,7 @@ template<typename IntType>
 
 
 template<typename IntType>
+  __host__ __device__
   void uniform_int_distribution<IntType>
     ::param(const param_type &parm)
 {
@@ -117,6 +129,7 @@ template<typename IntType>
 
 
 template<typename IntType>
+  __host__ __device__
   typename uniform_int_distribution<IntType>::result_type
     uniform_int_distribution<IntType>
       ::min THRUST_PREVENT_MACRO_SUBSTITUTION (void) const
@@ -126,6 +139,7 @@ template<typename IntType>
 
 
 template<typename IntType>
+  __host__ __device__
   typename uniform_int_distribution<IntType>::result_type
     uniform_int_distribution<IntType>
       ::max THRUST_PREVENT_MACRO_SUBSTITUTION (void) const
@@ -135,6 +149,7 @@ template<typename IntType>
 
 
 template<typename IntType>
+  __host__ __device__
   bool uniform_int_distribution<IntType>
     ::equal(const uniform_int_distribution &rhs) const
 {
@@ -191,6 +206,7 @@ template<typename IntType>
 
 
 template<typename IntType>
+__host__ __device__
 bool operator==(const uniform_int_distribution<IntType> &lhs,
                 const uniform_int_distribution<IntType> &rhs)
 {
@@ -199,6 +215,7 @@ bool operator==(const uniform_int_distribution<IntType> &lhs,
 
 
 template<typename IntType>
+__host__ __device__
 bool operator!=(const uniform_int_distribution<IntType> &lhs,
                 const uniform_int_distribution<IntType> &rhs)
 {
@@ -228,5 +245,5 @@ operator>>(std::basic_istream<CharT,Traits> &is,
 
 } // end random
 
-} // end thrust
+THRUST_NAMESPACE_END
 

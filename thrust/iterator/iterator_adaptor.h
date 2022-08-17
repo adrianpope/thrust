@@ -37,8 +37,7 @@
 #include <thrust/detail/use_default.h>
 #include <thrust/iterator/detail/iterator_adaptor_base.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -144,6 +143,7 @@ template<typename Derived,
 
     /*! This constructor copies from a given instance of the \p Base iterator.
      */
+    __thrust_exec_check_disable__
     __host__ __device__
     explicit iterator_adaptor(Base const& iter)
       : m_iterator(iter)
@@ -184,31 +184,34 @@ template<typename Derived,
      */
   private: // Core iterator interface for iterator_facade
 
-    __thrust_hd_warning_disable__
+    __thrust_exec_check_disable__
     __host__ __device__
     typename iterator_adaptor::reference dereference() const
     { return *m_iterator; }
 
-    __thrust_hd_warning_disable__
+    __thrust_exec_check_disable__
     template<typename OtherDerived, typename OtherIterator, typename V, typename S, typename T, typename R, typename D>
     __host__ __device__
     bool equal(iterator_adaptor<OtherDerived, OtherIterator, V, S, T, R, D> const& x) const
     { return m_iterator == x.base(); }
 
-    __thrust_hd_warning_disable__
+    __thrust_exec_check_disable__
     __host__ __device__
     void advance(typename iterator_adaptor::difference_type n)
     {
       // XXX statically assert on random_access_traversal_tag
-      m_iterator += n;
+
+      // counting_iterator will pick eg. diff_t=int64 when base=int32.
+      // Explicitly cast to avoid static conversion warnings.
+      m_iterator = static_cast<base_type>(m_iterator + n);
     }
 
-    __thrust_hd_warning_disable__
+    __thrust_exec_check_disable__
     __host__ __device__
     void increment()
     { ++m_iterator; }
 
-    __thrust_hd_warning_disable__
+    __thrust_exec_check_disable__
     __host__ __device__
     void decrement()
     {
@@ -216,7 +219,7 @@ template<typename Derived,
       --m_iterator;
     }
 
-    __thrust_hd_warning_disable__
+    __thrust_exec_check_disable__
     template<typename OtherDerived, typename OtherIterator, typename V, typename S, typename T, typename R, typename D>
     __host__ __device__
     typename iterator_adaptor::difference_type distance_to(iterator_adaptor<OtherDerived, OtherIterator, V, S, T, R, D> const& y) const
@@ -235,5 +238,5 @@ template<typename Derived,
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 

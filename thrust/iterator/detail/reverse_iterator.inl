@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,18 +14,21 @@
  *  limitations under the License.
  */
 
+#pragma once
+
+#include <thrust/detail/config.h>
+
 #include <thrust/iterator/reverse_iterator.h>
 #include <thrust/iterator/iterator_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename Iterator>
-__host__ __device__
+  __host__ __device__
   Iterator prior(Iterator x)
 {
   return --x;
@@ -34,6 +37,7 @@ __host__ __device__
 } // end detail
 
 template<typename BidirectionalIterator>
+  __host__ __device__
   reverse_iterator<BidirectionalIterator>
     ::reverse_iterator(BidirectionalIterator x)
       :super_t(x)
@@ -42,45 +46,50 @@ template<typename BidirectionalIterator>
 
 template<typename BidirectionalIterator>
   template<typename OtherBidirectionalIterator>
+    __host__ __device__
     reverse_iterator<BidirectionalIterator>
       ::reverse_iterator(reverse_iterator<OtherBidirectionalIterator> const &r
 // XXX msvc screws this up
-#ifndef _MSC_VER
+#if THRUST_HOST_COMPILER != THRUST_HOST_COMPILER_MSVC
                      , typename thrust::detail::enable_if<
                          thrust::detail::is_convertible<
                            OtherBidirectionalIterator,
                            BidirectionalIterator
                          >::value
                        >::type *
-#endif // _MSC_VER
+#endif // MSVC
                      )
         :super_t(r.base())
 {
 } // end reverse_iterator::reverse_iterator()
 
 template<typename BidirectionalIterator>
+  __host__ __device__
   typename reverse_iterator<BidirectionalIterator>::super_t::reference
     reverse_iterator<BidirectionalIterator>
-      ::dereference(void) const
+      ::dereference() const
 {
   return *thrust::detail::prior(this->base());
 } // end reverse_iterator::increment()
 
 template<typename BidirectionalIterator>
+  __host__ __device__
   void reverse_iterator<BidirectionalIterator>
-    ::increment(void)
+    ::increment()
 {
   --this->base_reference();
 } // end reverse_iterator::increment()
 
 template<typename BidirectionalIterator>
+  __host__ __device__
   void reverse_iterator<BidirectionalIterator>
-    ::decrement(void)
+    ::decrement()
 {
   ++this->base_reference();
 } // end reverse_iterator::decrement()
 
 template<typename BidirectionalIterator>
+  __host__ __device__
   void reverse_iterator<BidirectionalIterator>
     ::advance(typename super_t::difference_type n)
 {
@@ -89,6 +98,7 @@ template<typename BidirectionalIterator>
 
 template<typename BidirectionalIterator>
   template<typename OtherBidirectionalIterator>
+    __host__ __device__
     typename reverse_iterator<BidirectionalIterator>::super_t::difference_type
       reverse_iterator<BidirectionalIterator>
         ::distance_to(reverse_iterator<OtherBidirectionalIterator> const &y) const
@@ -104,5 +114,5 @@ reverse_iterator<BidirectionalIterator> make_reverse_iterator(BidirectionalItera
 } // end make_reverse_iterator()
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

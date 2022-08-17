@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2022 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,26 +24,11 @@
 
 #include <thrust/detail/config.h>
 
-// XXX nvcc 2.2 closed beta can't compile type_traits
-//// find type_traits
-//
-//#ifdef __GNUC__
-//
-//#if __GNUC__ == 4 && __GNUC_MINOR__ == 2
-//#include <tr1/type_traits>
-//#elif __GNUC__ == 4 && __GNUC_MINOR__ > 2
-//#include <type_traits>
-//#endif // GCC version
-//
-//#endif // GCC
-//
-//#ifdef _MSC_VER
-//#include <type_traits>
-//#endif // MSVC
+#include <cuda/std/type_traits>
 
+#include <type_traits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // forward declaration of device_reference
 template<typename T> class device_reference;
@@ -51,19 +36,35 @@ template<typename T> class device_reference;
 namespace detail
 {
  /// helper classes [4.3].
- template<typename _Tp, _Tp __v>
+ template<typename T, T v>
    struct integral_constant
    {
-     static const _Tp                      value = __v;
-     typedef _Tp                           value_type;
-     typedef integral_constant<_Tp, __v>   type;
+     THRUST_INLINE_INTEGRAL_MEMBER_CONSTANT T value = v;
+
+     typedef T                       value_type;
+     typedef integral_constant<T, v> type;
+
+     // We don't want to switch to std::integral_constant, because we want access
+     // to the C++14 operator(), but we'd like standard traits to interoperate
+     // with our version when tag dispatching.
+     integral_constant() = default;
+
+     integral_constant(integral_constant const&) = default;
+
+     integral_constant& operator=(integral_constant const&) = default;
+
+     constexpr __host__ __device__
+     integral_constant(std::integral_constant<T, v>) noexcept {}
+
+     constexpr __host__ __device__ operator value_type() const noexcept { return value; }
+     constexpr __host__ __device__ value_type operator()() const noexcept { return value; }
    };
  
  /// typedef for true_type
- typedef integral_constant<bool, true>     true_type;
+ typedef integral_constant<bool, true>  true_type;
 
  /// typedef for true_type
- typedef integral_constant<bool, false>    false_type;
+ typedef integral_constant<bool, false> false_type;
 
 //template<typename T> struct is_integral : public std::tr1::is_integral<T> {};
 template<typename T> struct is_integral                           : public false_type {};
@@ -111,23 +112,23 @@ template<typename T> struct is_void             : public false_type {};
 template<>           struct is_void<void>       : public true_type {};
 template<>           struct is_void<const void> : public true_type {};
 
+template<typename T> struct is_non_bool_integral       : public is_integral<T> {};
+template<>           struct is_non_bool_integral<bool> : public false_type {};
 
-namespace tt_detail
-{
-
-
-} // end tt_detail
+template<typename T> struct is_non_bool_arithmetic       : public is_arithmetic<T> {};
+template<>           struct is_non_bool_arithmetic<bool> : public false_type {};
 
 template<typename T> struct is_pod
    : public integral_constant<
        bool,
        is_void<T>::value || is_pointer<T>::value || is_arithmetic<T>::value
-#if THRUST_HOST_COMPILER   == THRUST_HOST_COMPILER_MSVC
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC || \
+    THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_CLANG
 // use intrinsic type traits
        || __is_pod(T)
 #elif THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_GCC
 // only use the intrinsic for >= 4.3
-#if (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 3)
+#if (__GNUC__ * 100 + __GNUC_MINOR__ >= 403)
        || __is_pod(T)
 #endif // GCC VERSION
 #endif // THRUST_HOST_COMPILER
@@ -139,7 +140,8 @@ template<typename T> struct has_trivial_constructor
   : public integral_constant<
       bool,
       is_pod<T>::value
-#if THRUST_HOST_COMPILER   == THRUST_HOST_COMPILER_MSVC
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC || \
+    THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_CLANG
       || __has_trivial_constructor(T)
 #elif THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_GCC
 // only use the intrinsic for >= 4.3
@@ -154,7 +156,8 @@ template<typename T> struct has_trivial_copy_constructor
   : public integral_constant<
       bool,
       is_pod<T>::value
-#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC
+#if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC || \
+    THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_CLANG
       || __has_trivial_copy(T)
 #elif THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_GCC
 // only use the intrinsic for >= 4.3
@@ -225,6 +228,8 @@ template<typename T>
 template<typename T> struct is_reference     : public false_type {};
 template<typename T> struct is_reference<T&> : public true_type {};
 
+template<typename T> struct is_proxy_reference  : public false_type {};
+
 template<typename T> struct is_device_reference                                : public false_type {};
 template<typename T> struct is_device_reference< thrust::device_reference<T> > : public true_type {};
 
@@ -290,6 +295,12 @@ template<typename T1, typename T2>
 {
 }; // end lazy_is_different
 
+#if THRUST_CPP_DIALECT >= 2011
+
+using std::is_convertible;
+
+#else
+
 namespace tt_detail
 {
 
@@ -304,28 +315,27 @@ template<typename T>
 }; // end is_int_or_cref
 
 
-__THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_BEGIN
-__THRUST_DISABLE_MSVC_FORCING_VALUE_TO_BOOL_BEGIN
-
+THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_BEGIN
+THRUST_DISABLE_MSVC_FORCING_VALUE_TO_BOOL_WARNING_BEGIN
 
 template<typename From, typename To>
   struct is_convertible_sfinae
 {
   private:
-    typedef char                          one_byte;
-    typedef struct { char two_chars[2]; } two_bytes;
+    typedef char                          yes;
+    typedef struct { char two_chars[2]; } no;
 
-    static one_byte  test(To);
-    static two_bytes test(...);
-    static From      m_from;
+    static inline yes   test(To) { return yes(); }
+    static inline no    test(...) { return no(); } 
+    static inline typename remove_reference<From>::type& from() { typename remove_reference<From>::type* ptr = 0; return *ptr; }
 
   public:
-    static const bool value = sizeof(test(m_from)) == sizeof(one_byte);
+    static const bool value = sizeof(test(from())) == sizeof(yes);
 }; // end is_convertible_sfinae
 
 
-__THRUST_DISABLE_MSVC_FORCING_VALUE_TO_BOOL_END
-__THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_END
+THRUST_DISABLE_MSVC_FORCING_VALUE_TO_BOOL_WARNING_END
+THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_END
 
 
 template<typename From, typename To>
@@ -366,6 +376,7 @@ template<typename From, typename To>
 {
 }; // end is_convertible
 
+#endif
 
 template<typename T1, typename T2>
   struct is_one_convertible_to_the_other
@@ -377,22 +388,44 @@ template<typename T1, typename T2>
 
 
 // mpl stuff
+template<typename... Conditions>
+  struct or_;
 
-template <typename Condition1,               typename Condition2,              typename Condition3 = false_type,
-          typename Condition4  = false_type, typename Condition5 = false_type, typename Condition6 = false_type,
-          typename Condition7  = false_type, typename Condition8 = false_type, typename Condition9 = false_type,
-          typename Condition10 = false_type>
-  struct or_
+template <>
+  struct or_<>
     : public integral_constant<
         bool,
-        Condition1::value || Condition2::value || Condition3::value || Condition4::value || Condition5::value || Condition6::value || Condition7::value || Condition8::value || Condition9::value || Condition10::value
+        false_type::value  // identity for or_
       >
 {
 }; // end or_
 
-template <typename Condition1, typename Condition2, typename Condition3 = true_type>
-  struct and_
-    : public integral_constant<bool, Condition1::value && Condition2::value && Condition3::value>
+template <typename Condition, typename... Conditions>
+  struct or_<Condition, Conditions...>
+    : public integral_constant<
+        bool,
+        Condition::value || or_<Conditions...>::value
+      >
+{
+}; // end or_
+
+template <typename... Conditions>
+  struct and_;
+
+template<>
+  struct and_<>
+    : public integral_constant<
+        bool,
+        true_type::value // identity for and_
+      >
+{
+}; // end and_
+
+template <typename Condition, typename... Conditions>
+  struct and_<Condition, Conditions...>
+    : public integral_constant<
+        bool,
+        Condition::value && and_<Conditions...>::value>
 {
 }; // end and_
 
@@ -401,6 +434,12 @@ template <typename Boolean>
     : public integral_constant<bool, !Boolean::value>
 {
 }; // end not_
+
+template<bool B, class T, class F>
+struct conditional { typedef T type; };
+ 
+template<class T, class F>
+struct conditional<false, T, F> { typedef F type; };
 
 template <bool, typename Then, typename Else>
   struct eval_if
@@ -477,7 +516,7 @@ namespace tt_detail
 template<typename T> struct make_unsigned_simple;
 
 template<> struct make_unsigned_simple<char>                   { typedef unsigned char          type; };
-template<> struct make_unsigned_simple<signed char>            { typedef signed   char          type; };
+template<> struct make_unsigned_simple<signed char>            { typedef unsigned char          type; };
 template<> struct make_unsigned_simple<unsigned char>          { typedef unsigned char          type; };
 template<> struct make_unsigned_simple<short>                  { typedef unsigned short         type; };
 template<> struct make_unsigned_simple<unsigned short>         { typedef unsigned short         type; };
@@ -527,15 +566,7 @@ template<typename T>
 
 struct largest_available_float
 {
-#if defined(__CUDA_ARCH__)
-#  if (__CUDA_ARCH__ < 130)
-  typedef float type;
-#  else
   typedef double type;
-#  endif
-#else
-  typedef double type;
-#endif
 };
 
 // T1 wins if they are both the same size
@@ -548,6 +579,11 @@ template<typename T1, typename T2>
       >
 {};
 
+#if THRUST_CPP_DIALECT >= 2011
+
+using std::is_base_of;
+
+#else
 
 namespace is_base_of_ns
 {
@@ -582,6 +618,8 @@ template<typename Base, typename Derived>
       >
 {};
 
+#endif
+
 template<typename Base, typename Derived, typename Result = void>
   struct enable_if_base_of
     : enable_if<
@@ -602,7 +640,7 @@ template<typename T1, typename T2>
 
   template<typename T> static typename add_reference<T>::type declval();
   
-  template<unsigned int> struct helper { typedef void * type; };
+  template<size_t> struct helper { typedef void * type; };
 
   template<typename U1, typename U2> static yes_type test(typename helper<sizeof(declval<U1>() = declval<U2>())>::type);
 
@@ -640,7 +678,7 @@ template<typename T1, typename T2>
   <typename is_floating_point<T1>::type,typename is_floating_point<T2>::type>
   ::value>::type>
   {
-  typedef larger_type<T1,T2> type;
+  typedef typename larger_type<T1,T2>::type type;
   };
 
 template<typename T1, typename T2> 
@@ -659,9 +697,43 @@ template<typename T1, typename T2>
   typedef T1 type;
   };
 
+template<typename T>
+  struct is_empty_helper : public T
+  {
+  };
+
+struct is_empty_helper_base
+{
+};
+
+template<typename T>
+  struct is_empty : integral_constant<bool,
+    sizeof(is_empty_helper_base) == sizeof(is_empty_helper<T>)
+  >
+  {
+  };
+
+template <typename Invokable, typename... Args>
+using invoke_result_t =
+#if THRUST_CPP_DIALECT < 2017
+  typename ::cuda::std::result_of<Invokable(Args...)>::type;
+#else // 2017+
+  ::cuda::std::invoke_result_t<Invokable, Args...>;
+#endif
+
+template <class F, class... Us> 
+struct invoke_result
+{
+  using type = invoke_result_t<F, Us...>;
+};
+
 } // end detail
 
-} // end thrust
+using detail::integral_constant;
+using detail::true_type;
+using detail::false_type;
+
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/type_traits/has_trivial_assign.h>
 

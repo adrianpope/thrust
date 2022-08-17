@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/system/omp/detail/default_decomposition.h>
 
@@ -22,8 +24,7 @@
 #include <omp.h>
 #endif // omp support
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -39,8 +40,12 @@ thrust::system::detail::internal::uniform_decomposition<IndexType> default_decom
   // X Note to the user: If you've found this line due to a compiler error, X
   // X you need to OpenMP support in your compiler.                         X
   // ========================================================================
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<IndexType,
-                        (THRUST_DEVICE_COMPILER_IS_OMP_CAPABLE == THRUST_TRUE)>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<
+      IndexType, (THRUST_DEVICE_COMPILER_IS_OMP_CAPABLE == THRUST_TRUE)
+    >::value)
+  , "OpenMP compiler support is not enabled"
+  );
 
 #if (THRUST_DEVICE_COMPILER_IS_OMP_CAPABLE == THRUST_TRUE)
   return thrust::system::detail::internal::uniform_decomposition<IndexType>(n, 1, omp_get_num_procs());
@@ -52,5 +57,5 @@ thrust::system::detail::internal::uniform_decomposition<IndexType> default_decom
 } // end namespace detail
 } // end namespace omp
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

@@ -14,17 +14,18 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/sequential/copy.h>
-#include <thrust/detail/dispatch/is_trivial_copy.h>
 #include <thrust/detail/type_traits.h>
 #include <thrust/system/detail/sequential/general_copy.h>
 #include <thrust/system/detail/sequential/trivial_copy.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/detail/type_traits/pointer_traits.h>
+#include <thrust/type_traits/is_trivially_relocatable.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -45,14 +46,14 @@ __host__ __device__
 }
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename InputIterator,
          typename OutputIterator>
 __host__ __device__
   OutputIterator copy(InputIterator first,
                       InputIterator last,
                       OutputIterator result,
-                      thrust::detail::true_type)  // is_trivial_copy
+                      thrust::detail::true_type)  // is_indirectly_trivially_relocatable_to
 {
   typedef typename thrust::iterator_difference<InputIterator>::type Size;
 
@@ -62,20 +63,20 @@ __host__ __device__
 } // end copy()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename InputIterator,
          typename OutputIterator>
 __host__ __device__
   OutputIterator copy(InputIterator first,
                       InputIterator last,
                       OutputIterator result,
-                      thrust::detail::false_type)  // is_trivial_copy
+                      thrust::detail::false_type)  // is_indirectly_trivially_relocatable_to
 {
   return thrust::system::detail::sequential::general_copy(first,last,result);
 } // end copy()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename InputIterator,
          typename Size,
          typename OutputIterator>
@@ -83,13 +84,14 @@ __host__ __device__
   OutputIterator copy_n(InputIterator first,
                         Size n,
                         OutputIterator result,
-                        thrust::detail::true_type)  // is_trivial_copy
+                        thrust::detail::true_type)  // is_indirectly_trivially_relocatable_to
 {
   thrust::system::detail::sequential::trivial_copy_n(get(&*first), n, get(&*result));
   return result + n;
 } // end copy_n()
 
 
+__thrust_exec_check_disable__
 template<typename InputIterator,
          typename Size,
          typename OutputIterator>
@@ -97,7 +99,7 @@ __host__ __device__
   OutputIterator copy_n(InputIterator first,
                         Size n,
                         OutputIterator result,
-                        thrust::detail::false_type)  // is_trivial_copy
+                        thrust::detail::false_type)  // is_indirectly_trivially_relocatable_to
 {
   return thrust::system::detail::sequential::general_copy_n(first,n,result);
 } // end copy_n()
@@ -106,7 +108,7 @@ __host__ __device__
 } // end namespace copy_detail
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy,
          typename InputIterator,
          typename OutputIterator>
@@ -117,10 +119,11 @@ __host__ __device__
                       OutputIterator result)
 {
   return thrust::system::detail::sequential::copy_detail::copy(first, last, result,
-    typename thrust::detail::dispatch::is_trivial_copy<InputIterator,OutputIterator>::type());
+    typename thrust::is_indirectly_trivially_relocatable_to<InputIterator,OutputIterator>::type());
 } // end copy()
 
 
+__thrust_exec_check_disable__
 template<typename DerivedPolicy,
          typename InputIterator,
          typename Size,
@@ -132,12 +135,12 @@ __host__ __device__
                         OutputIterator result)
 {
   return thrust::system::detail::sequential::copy_detail::copy_n(first, n, result,
-    typename thrust::detail::dispatch::is_trivial_copy<InputIterator,OutputIterator>::type());
+    typename thrust::is_indirectly_trivially_relocatable_to<InputIterator,OutputIterator>::type());
 } // end copy_n()
 
 
 } // end namespace sequential
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

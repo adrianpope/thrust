@@ -37,8 +37,7 @@
 #include <thrust/iterator/detail/reverse_iterator_base.h>
 #include <thrust/iterator/iterator_facade.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -160,7 +159,7 @@ template<typename BidirectionalIterator>
     /*! Default constructor does nothing.
      */
     __host__ __device__
-    reverse_iterator(void) {}
+    reverse_iterator() {}
 
     /*! \p Constructor accepts a \c BidirectionalIterator pointing to a range
      *  for this \p reverse_iterator to reverse.
@@ -180,28 +179,28 @@ template<typename BidirectionalIterator>
     reverse_iterator(reverse_iterator<OtherBidirectionalIterator> const &r
 // XXX msvc screws this up
 // XXX remove these guards when we have static_assert
-#ifndef _MSC_VER
+#if THRUST_HOST_COMPILER != THRUST_HOST_COMPILER_MSVC
                      , typename thrust::detail::enable_if<
                          thrust::detail::is_convertible<
                            OtherBidirectionalIterator,
                            BidirectionalIterator
                          >::value
                        >::type * = 0
-#endif // _MSC_VER
+#endif // MSVC
                      );
 
   /*! \cond
    */
   private:
-    __thrust_hd_warning_disable__
+    __thrust_exec_check_disable__
     __host__ __device__
-    typename super_t::reference dereference(void) const;
+    typename super_t::reference dereference() const;
 
     __host__ __device__
-    void increment(void);
+    void increment();
 
     __host__ __device__
-    void decrement(void);
+    void decrement();
 
     __host__ __device__
     void advance(typename super_t::difference_type n);
@@ -232,7 +231,7 @@ reverse_iterator<BidirectionalIterator> make_reverse_iterator(BidirectionalItera
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/iterator/detail/reverse_iterator.inl>
 

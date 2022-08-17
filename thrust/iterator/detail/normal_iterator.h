@@ -22,12 +22,13 @@
 
 #pragma once
 
-#include <thrust/iterator/iterator_adaptor.h>
-#include <thrust/iterator/detail/is_trivial_iterator.h>
-#include <thrust/detail/type_traits.h>
+#include <thrust/detail/config.h>
 
-namespace thrust
-{
+#include <thrust/iterator/iterator_adaptor.h>
+#include <thrust/detail/type_traits.h>
+#include <thrust/type_traits/is_contiguous_iterator.h>
+
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -67,10 +68,12 @@ template<typename Pointer>
   return normal_iterator<Pointer>(ptr);
 }
 
-
-template<typename T> struct is_trivial_iterator< normal_iterator<T> > : public true_type {};
-
-
 } // end detail
-} // end thrust
+
+template <typename T>
+struct proclaim_contiguous_iterator<
+  thrust::detail::normal_iterator<T>
+> : true_type {};
+
+THRUST_NAMESPACE_END
 

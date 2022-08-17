@@ -14,17 +14,16 @@
  *  limitations under the License.
  */
 
+#pragma once
 
-/*! \file iterator_traits.inl
- *  \brief Inline file for iterator_traits.h.
- */
+#include <thrust/detail/config.h>
 
 #include <thrust/iterator/iterator_categories.h>
 #include <thrust/iterator/detail/iterator_category_to_traversal.h>
 #include <thrust/detail/type_traits.h>
+#include <thrust/type_traits/void_t.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template<typename Iterator>
   struct iterator_value
@@ -32,6 +31,8 @@ template<typename Iterator>
   typedef typename thrust::iterator_traits<Iterator>::value_type type;
 }; // end iterator_value
 
+template <typename Iterator>
+using iterator_value_t = typename iterator_value<Iterator>::type;
 
 template<typename Iterator>
   struct iterator_pointer
@@ -39,6 +40,8 @@ template<typename Iterator>
   typedef typename thrust::iterator_traits<Iterator>::pointer type;
 }; // end iterator_pointer
 
+template <typename Iterator>
+using iterator_pointer_t = typename iterator_pointer<Iterator>::type;
 
 template<typename Iterator>
   struct iterator_reference
@@ -46,6 +49,8 @@ template<typename Iterator>
   typedef typename iterator_traits<Iterator>::reference type;
 }; // end iterator_reference
 
+template <typename Iterator>
+using iterator_reference_t = typename iterator_reference<Iterator>::type;
 
 template<typename Iterator>
   struct iterator_difference
@@ -53,14 +58,31 @@ template<typename Iterator>
   typedef typename thrust::iterator_traits<Iterator>::difference_type type;
 }; // end iterator_difference
 
+template <typename Iterator>
+using iterator_difference_t = typename iterator_difference<Iterator>::type;
 
-template<typename Iterator>
-  struct iterator_system
-    : detail::iterator_category_to_system<
-        typename thrust::iterator_traits<Iterator>::iterator_category
-      >
+namespace detail
 {
-}; // end iterator_system
+
+template <typename Iterator, typename = void>
+struct iterator_system_impl {};
+
+template <typename Iterator>
+struct iterator_system_impl<
+  Iterator
+, typename voider<
+    typename iterator_traits<Iterator>::iterator_category
+  >::type
+>
+  : detail::iterator_category_to_system<
+      typename iterator_traits<Iterator>::iterator_category
+    >
+{};
+
+} // namespace detail
+
+template <typename Iterator>
+struct iterator_system : detail::iterator_system_impl<Iterator> {};
 
 // specialize iterator_system for void *, which has no category
 template<>
@@ -75,6 +97,8 @@ template<>
   typedef thrust::iterator_system<const int*>::type type;
 }; // end iterator_system<void*>
 
+template <typename Iterator>
+using iterator_system_t = typename iterator_system<Iterator>::type;
 
 template <typename Iterator>
   struct iterator_traversal
@@ -108,5 +132,5 @@ template<typename T>
 
 
 } // end namespace detail
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

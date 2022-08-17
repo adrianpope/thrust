@@ -14,16 +14,16 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/type_traits/pointer_traits.h>
 #include <thrust/system/detail/generic/memory.h>
-#include <thrust/system/detail/generic/select_system.h>
 #include <thrust/system/detail/adl/malloc_and_free.h>
 #include <thrust/detail/static_assert.h>
 #include <thrust/detail/malloc_and_free.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -36,8 +36,10 @@ template<typename DerivedPolicy, typename Size>
 __host__ __device__
   void malloc(thrust::execution_policy<DerivedPolicy> &, Size)
 {
-  // unimplemented
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<Size, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<Size, false>::value)
+  , "unimplemented for this system"
+  );
 }
 
 
@@ -56,8 +58,10 @@ template<typename DerivedPolicy, typename Pointer>
 __host__ __device__
   void free(thrust::execution_policy<DerivedPolicy> &, Pointer)
 {
-  // unimplemented
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<Pointer, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<Pointer, false>::value)
+  , "unimplemented for this system"
+  );
 }
 
 
@@ -65,8 +69,10 @@ template<typename DerivedPolicy, typename Pointer1, typename Pointer2>
 __host__ __device__
 void assign_value(thrust::execution_policy<DerivedPolicy> &, Pointer1, Pointer2)
 {
-  // unimplemented
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<Pointer1, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<Pointer1, false>::value)
+  , "unimplemented for this system"
+  );
 }
 
 
@@ -74,22 +80,26 @@ template<typename DerivedPolicy, typename Pointer>
 __host__ __device__
 void get_value(thrust::execution_policy<DerivedPolicy> &, Pointer)
 {
-  // unimplemented
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<Pointer, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<Pointer, false>::value)
+  , "unimplemented for this system"
+  );
 }
 
 
-template<typename Pointer1, typename Pointer2>
+template<typename DerivedPolicy, typename Pointer1, typename Pointer2>
 __host__ __device__
-void iter_swap(tag, Pointer1, Pointer2)
+void iter_swap(thrust::execution_policy<DerivedPolicy> &, Pointer1, Pointer2)
 {
-  // unimplemented
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<Pointer1, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<Pointer1, false>::value)
+  , "unimplemented for this system"
+  );
 }
 
 
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

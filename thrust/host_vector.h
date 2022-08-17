@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2018 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,21 +16,19 @@
 
 
 /*! \file host_vector.h
- *  \brief A dynamically-sizable array of elements which reside in the "host" memory space
+ *  \brief A dynamically-sizable array of elements which resides in memory
+ *         accessible to hosts.
  */
 
 #pragma once
 
 #include <thrust/detail/config.h>
-#include <memory>
+#include <thrust/detail/memory_wrapper.h>
 #include <thrust/detail/vector_base.h>
 #include <vector>
+#include <utility>
 
-namespace thrust
-{
-
-// forward declaration of device_vector
-template<typename T, typename Alloc> class device_vector;
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup container_classes Container Classes
  *  \addtogroup host_containers Host Containers
@@ -42,11 +40,12 @@ template<typename T, typename Alloc> class device_vector;
  *  constant time removal of elements at the end, and linear time insertion
  *  and removal of elements at the beginning or in the middle. The number of
  *  elements in a \p host_vector may vary dynamically; memory management is
- *  automatic. The memory associated with a \p host_vector resides in the memory
- *  space of the host associated with a parallel device.
+ *  automatic. The memory associated with a \p host_vector resides in memory
+ *  accessible to hosts.
  *
- *  \see http://www.sgi.com/tech/stl/Vector.html
+ *  \see https://en.cppreference.com/w/cpp/container/vector
  *  \see device_vector
+ *  \see universal_vector
  */
 template<typename T, typename Alloc = std::allocator<T> >
   class host_vector
@@ -69,13 +68,36 @@ template<typename T, typename Alloc = std::allocator<T> >
     host_vector(void)
       :Parent() {}
 
+    /*! This constructor creates an empty \p host_vector.
+     *  \param alloc The allocator to use by this host_vector.
+     */
+    __host__
+    host_vector(const Alloc &alloc)
+      :Parent(alloc) {}
+
+    /*! The destructor erases the elements.
+     */
+    //  Define an empty destructor to explicitly specify
+    //  its execution space qualifier, as a workaround for nvcc warning
+    __host__
+    ~host_vector(void) {}
+
     /*! This constructor creates a \p host_vector with the given
      *  size.
-     *  \param n The number of elements to initially craete.
+     *  \param n The number of elements to initially create.
      */
     __host__
     explicit host_vector(size_type n)
       :Parent(n) {}
+
+    /*! This constructor creates a \p host_vector with the given
+     *  size.
+     *  \param n The number of elements to initially create.
+     *  \param alloc The allocator to use by this host_vector.
+     */
+    __host__
+    explicit host_vector(size_type n, const Alloc &alloc)
+      :Parent(n,alloc) {}
 
     /*! This constructor creates a \p host_vector with copies
      *  of an exemplar element.
@@ -86,6 +108,16 @@ template<typename T, typename Alloc = std::allocator<T> >
     explicit host_vector(size_type n, const value_type &value)
       :Parent(n,value) {}
 
+    /*! This constructor creates a \p host_vector with copies
+     *  of an exemplar element.
+     *  \param n The number of elements to initially create.
+     *  \param value An element to copy.
+     *  \param alloc The allocator to use by this host_vector.
+     */
+    __host__
+    explicit host_vector(size_type n, const value_type &value, const Alloc &alloc)
+      :Parent(n,value,alloc) {}
+
     /*! Copy constructor copies from an exemplar \p host_vector.
      *  \param v The \p host_vector to copy.
      */
@@ -93,12 +125,46 @@ template<typename T, typename Alloc = std::allocator<T> >
     host_vector(const host_vector &v)
       :Parent(v) {}
 
-    /*! Assign operator copies from an exemplar \p host_vector.
+    /*! Copy constructor copies from an exemplar \p host_vector.
      *  \param v The \p host_vector to copy.
+     *  \param alloc The allocator to use by this host_vector.
      */
     __host__
-    host_vector &operator=(const host_vector &v)
-    { Parent::operator=(v); return *this; }
+    host_vector(const host_vector &v, const Alloc &alloc)
+      :Parent(v,alloc) {}
+
+  #if THRUST_CPP_DIALECT >= 2011
+    /*! Move constructor moves from another host_vector.
+     *  \param v The host_vector to move.
+     */
+     __host__
+    host_vector(host_vector &&v)
+      :Parent(std::move(v)) {}
+
+    /*! Move constructor moves from another host_vector.
+     *  \param v The host_vector to move.
+     *  \param alloc The allocator to use by this host_vector.
+     */
+     __host__
+    host_vector(host_vector &&v, const Alloc &alloc)
+      :Parent(std::move(v),alloc) {}
+  #endif
+
+  /*! Assign operator copies from an exemplar \p host_vector.
+   *  \param v The \p host_vector to copy.
+   */
+  __host__
+  host_vector &operator=(const host_vector &v)
+  { Parent::operator=(v); return *this; }
+
+  #if THRUST_CPP_DIALECT >= 2011
+    /*! Move assign operator moves from another host_vector.
+     *  \param v The host_vector to move.
+     */
+     __host__
+     host_vector &operator=(host_vector &&v)
+     { Parent::operator=(std::move(v)); return *this; }
+  #endif
 
     /*! Copy constructor copies from an exemplar \p host_vector with different type.
      *  \param v The \p host_vector to copy.
@@ -132,19 +198,23 @@ template<typename T, typename Alloc = std::allocator<T> >
     host_vector &operator=(const std::vector<OtherT,OtherAlloc> &v)
     { Parent::operator=(v); return *this;}
 
-    /*! Copy constructor copies from an exemplar \p device_vector with possibly different type.
-     *  \param v The \p device_vector to copy.
+    /*! Copy construct from a \p vector_base whose element type is convertible
+     *  to \c T.
+     *
+     *  \param v The \p vector_base to copy.
      */
     template<typename OtherT, typename OtherAlloc>
     __host__
-    host_vector(const device_vector<OtherT,OtherAlloc> &v);
+    host_vector(const detail::vector_base<OtherT,OtherAlloc> &v)
+      :Parent(v) {}
 
-    /*! Assign operator copies from an exemplar \p device_vector.
-     *  \param v The \p device_vector to copy.
+    /*! Assign a \p vector_base whose element type is convertible to \c T.
+     *
+     *  \param v The \p vector_base to copy.
      */
     template<typename OtherT, typename OtherAlloc>
     __host__
-    host_vector &operator=(const device_vector<OtherT,OtherAlloc> &v)
+    host_vector &operator=(const detail::vector_base<OtherT,OtherAlloc> &v)
     { Parent::operator=(v); return *this; }
 
     /*! This constructor builds a \p host_vector from a range.
@@ -155,6 +225,16 @@ template<typename T, typename Alloc = std::allocator<T> >
     __host__
     host_vector(InputIterator first, InputIterator last)
       :Parent(first, last) {}
+
+    /*! This constructor builds a \p host_vector from a range.
+     *  \param first The beginning of the range.
+     *  \param last The end of the range.
+     *  \param alloc The allocator to use by this host_vector.
+     */
+    template<typename InputIterator>
+    __host__
+    host_vector(InputIterator first, InputIterator last, const Alloc &alloc)
+      :Parent(first, last, alloc) {}
 
 // declare these members for the purpose of Doxygenating them
 // they actually exist in a derived-from class
@@ -346,7 +426,7 @@ template<typename T, typename Alloc = std::allocator<T> >
      */
     void pop_back(void);
 
-    /*! This method swaps the contents of this vector_base with another vector.
+    /*! This method swaps the contents of this host_vector with another vector.
      *  \param v The vector with which to swap.
      */
     void swap(host_vector &v);
@@ -372,7 +452,7 @@ template<typename T, typename Alloc = std::allocator<T> >
      *  \param x The exemplar element to copy & insert.
      *  \return An iterator pointing to the newly inserted element.
      */
-    iterator insert(iterator position, const T &x); 
+    iterator insert(iterator position, const T &x);
 
     /*! This method inserts a copy of an exemplar value to a range at the
      *  specified position in this vector.
@@ -388,8 +468,8 @@ template<typename T, typename Alloc = std::allocator<T> >
      *  \param first The beginning of the range to copy.
      *  \param last  The end of the range to copy.
      *
-     *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html>Input Iterator</a>,
-     *                        and \p InputIterator's \c value_type is a model of <a href="http://www.sgi.com/tech/stl/Assignable.html">Assignable</a>.
+     *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator>Input Iterator</a>,
+     *                        and \p InputIterator's \c value_type is a model of <a href="https://en.cppreference.com/w/cpp/named_req/CopyAssignable">Assignable</a>.
      */
     template<typename InputIterator>
     void insert(iterator position, InputIterator first, InputIterator last);
@@ -405,7 +485,7 @@ template<typename T, typename Alloc = std::allocator<T> >
      *  \param first The beginning of the range to copy.
      *  \param last  The end of the range to copy.
      *
-     *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator">Input Iterator</a>.
+     *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/named_req/InputIterator">Input Iterator</a>.
      */
     template<typename InputIterator>
     void assign(InputIterator first, InputIterator last);
@@ -415,12 +495,19 @@ template<typename T, typename Alloc = std::allocator<T> >
      */
     allocator_type get_allocator(void) const;
 #endif // end doxygen-only members
-}; // end host_vector
+};
+
+/*! Exchanges the values of two vectors.
+ *  \p x The first \p host_vector of interest.
+ *  \p y The second \p host_vector of interest.
+ */
+template<typename T, typename Alloc>
+  void swap(host_vector<T,Alloc> &a, host_vector<T,Alloc> &b)
+{
+  a.swap(b);
+}
 
 /*! \}
  */
 
-} // end thrust
-
-#include <thrust/detail/host_vector.inl>
-
+THRUST_NAMESPACE_END

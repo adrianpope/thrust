@@ -3,6 +3,7 @@
 #include <thrust/device_malloc_allocator.h>
 #include <thrust/iterator/retag.h>
 
+#include <nv/target>
 
 template<typename ForwardIterator, typename T>
 void uninitialized_fill(my_system &system,
@@ -147,23 +148,25 @@ DECLARE_VECTOR_UNITTEST(TestUninitializedFillPOD);
 
 struct CopyConstructTest
 {
+  __host__ __device__
   CopyConstructTest(void)
     :copy_constructed_on_host(false),
      copy_constructed_on_device(false)
   {}
 
   __host__ __device__
-  CopyConstructTest(const CopyConstructTest &exemplar)
+  CopyConstructTest(const CopyConstructTest &)
   {
-#if __CUDA_ARCH__
-    copy_constructed_on_device = true;
-    copy_constructed_on_host   = false;
-#else
-    copy_constructed_on_device = false;
-    copy_constructed_on_host   = true;
-#endif
+    NV_IF_TARGET(NV_IS_DEVICE, (
+      copy_constructed_on_device = true;
+      copy_constructed_on_host   = false;
+    ), (
+      copy_constructed_on_device = false;
+      copy_constructed_on_host   = true;
+    ));
   }
 
+  __host__ __device__
   CopyConstructTest &operator=(const CopyConstructTest &x)
   {
     copy_constructed_on_host   = x.copy_constructed_on_host;
@@ -178,7 +181,7 @@ struct CopyConstructTest
 
 struct TestUninitializedFillNonPOD
 {
-  void operator()(const size_t dummy)
+  void operator()(const size_t)
   {
     typedef CopyConstructTest T;
     thrust::device_ptr<T> v = thrust::device_malloc<T>(5);
@@ -264,7 +267,7 @@ DECLARE_VECTOR_UNITTEST(TestUninitializedFillNPOD);
 
 struct TestUninitializedFillNNonPOD
 {
-  void operator()(const size_t dummy)
+  void operator()(const size_t)
   {
     typedef CopyConstructTest T;
     thrust::device_ptr<T> v = thrust::device_malloc<T>(5);

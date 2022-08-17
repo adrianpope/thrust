@@ -25,8 +25,7 @@
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/detail/internal_functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -41,16 +40,18 @@ template<typename DerivedPolicy,
          typename OutputIterator,
          typename StrictWeakOrdering>
 __host__ __device__
-  OutputIterator merge(thrust::execution_policy<DerivedPolicy> &exec,
-                       InputIterator1 first1,
-                       InputIterator1 last1,
-                       InputIterator2 first2,
-                       InputIterator2 last2,
+  OutputIterator merge(thrust::execution_policy<DerivedPolicy> &,
+                       InputIterator1,
+                       InputIterator1,
+                       InputIterator2,
+                       InputIterator2,
                        OutputIterator result,
-                       StrictWeakOrdering comp)
+                       StrictWeakOrdering)
 {
-  // unimplemented
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<InputIterator1, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<InputIterator1, false>::value)
+  , "unimplemented for this system"
+  );
   return result;
 } // end merge()
 
@@ -125,5 +126,5 @@ __host__ __device__
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

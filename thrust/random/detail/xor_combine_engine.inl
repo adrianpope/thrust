@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +14,21 @@
  *  limitations under the License.
  */
 
+#pragma once
+
+#include <thrust/detail/config.h>
+
 #include <thrust/random/xor_combine_engine.h>
 #include <thrust/random/detail/random_core_access.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
 
 template<typename Engine1, size_t s1,
          typename Engine2, size_t s2>
+  __host__ __device__
   xor_combine_engine<Engine1,s1,Engine2,s2>
     ::xor_combine_engine(void)
       :m_b1(),m_b2()
@@ -33,6 +37,7 @@ template<typename Engine1, size_t s1,
 
 template<typename Engine1, size_t s1,
          typename Engine2, size_t s2>
+  __host__ __device__
   xor_combine_engine<Engine1,s1,Engine2,s2>
     ::xor_combine_engine(const base1_type &urng1, const base2_type &urng2)
       :m_b1(urng1),m_b2(urng2)
@@ -41,6 +46,7 @@ template<typename Engine1, size_t s1,
 
 template<typename Engine1, size_t s1,
          typename Engine2, size_t s2>
+  __host__ __device__
   xor_combine_engine<Engine1,s1,Engine2,s2>
     ::xor_combine_engine(result_type s)
       :m_b1(s),m_b2(s)
@@ -49,6 +55,7 @@ template<typename Engine1, size_t s1,
 
 template<typename Engine1, size_t s1,
          typename Engine2, size_t s2>
+  __host__ __device__
   void xor_combine_engine<Engine1,s1,Engine2,s2>
     ::seed(void)
 {
@@ -58,6 +65,7 @@ template<typename Engine1, size_t s1,
 
 template<typename Engine1, size_t s1,
          typename Engine2, size_t s2>
+  __host__ __device__
   void xor_combine_engine<Engine1,s1,Engine2,s2>
     ::seed(result_type s)
 {
@@ -67,6 +75,7 @@ template<typename Engine1, size_t s1,
 
 template<typename Engine1, size_t s1,
          typename Engine2, size_t s2>
+  __host__ __device__
   const typename xor_combine_engine<Engine1,s1,Engine2,s2>::base1_type &
     xor_combine_engine<Engine1,s1,Engine2,s2>
       ::base1(void) const
@@ -76,6 +85,7 @@ template<typename Engine1, size_t s1,
 
 template<typename Engine1, size_t s1,
          typename Engine2, size_t s2>
+  __host__ __device__
   const typename xor_combine_engine<Engine1,s1,Engine2,s2>::base2_type &
     xor_combine_engine<Engine1,s1,Engine2,s2>
       ::base2(void) const
@@ -85,6 +95,7 @@ template<typename Engine1, size_t s1,
 
 template<typename Engine1, size_t s1,
          typename Engine2, size_t s2>
+  __host__ __device__
   typename xor_combine_engine<Engine1,s1,Engine2,s2>::result_type
     xor_combine_engine<Engine1,s1,Engine2,s2>
       ::operator()(void)
@@ -95,6 +106,7 @@ template<typename Engine1, size_t s1,
 
 template<typename Engine1, size_t s1,
          typename Engine2, size_t s2>
+  __host__ __device__
   void xor_combine_engine<Engine1, s1, Engine2, s2>
     ::discard(unsigned long long z)
 {
@@ -154,6 +166,7 @@ template<typename Engine1, size_t s1, typename Engine2, size_t s2>
 
 
 template<typename Engine1, size_t s1, typename Engine2, size_t s2>
+  __host__ __device__
   bool xor_combine_engine<Engine1,s1,Engine2,s2>
     ::equal(const xor_combine_engine<Engine1,s1,Engine2,s2> &rhs) const
 {
@@ -182,6 +195,7 @@ operator>>(std::basic_istream<CharT,Traits> &is,
 
 
 template<typename Engine1, size_t s1, typename Engine2, size_t s2>
+__host__ __device__
 bool operator==(const xor_combine_engine<Engine1,s1,Engine2,s2> &lhs,
                 const xor_combine_engine<Engine1,s1,Engine2,s2> &rhs)
 {
@@ -190,6 +204,7 @@ bool operator==(const xor_combine_engine<Engine1,s1,Engine2,s2> &lhs,
 
 
 template<typename Engine1, size_t s1, typename Engine2, size_t s2>
+__host__ __device__
 bool operator!=(const xor_combine_engine<Engine1,s1,Engine2,s2> &lhs,
                 const xor_combine_engine<Engine1,s1,Engine2,s2> &rhs)
 {
@@ -199,5 +214,5 @@ bool operator!=(const xor_combine_engine<Engine1,s1,Engine2,s2> &lhs,
 
 } // end random
 
-} // end thrust
+THRUST_NAMESPACE_END
 

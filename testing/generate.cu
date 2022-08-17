@@ -3,7 +3,7 @@
 #include <thrust/iterator/discard_iterator.h>
 #include <thrust/iterator/retag.h>
 
-__THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_BEGIN
+THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_BEGIN
 
 template<typename T>
 struct return_value
@@ -40,7 +40,7 @@ DECLARE_VECTOR_UNITTEST(TestGenerateSimple);
 
 
 template<typename ForwardIterator, typename Generator>
-void generate(my_system &system, ForwardIterator first, ForwardIterator, Generator)
+void generate(my_system &system, ForwardIterator /*first*/, ForwardIterator, Generator)
 {
     system.validate_dispatch();
 }
@@ -92,7 +92,7 @@ void TestGenerate(const size_t n)
 DECLARE_VARIABLE_UNITTEST(TestGenerate);
 
 template <typename T>
-void TestGenerateToDiscardIterator(const size_t n)
+void TestGenerateToDiscardIterator(const size_t)
 {
     T value = 13;
     return_value<T> f(value);
@@ -224,4 +224,4 @@ void TestGenerateTuple(void)
 };
 DECLARE_UNITTEST(TestGenerateTuple);
 
-__THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_END
+THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_END

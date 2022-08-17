@@ -28,8 +28,7 @@
 #include <thrust/tuple.h>
 #include <thrust/detail/internal_functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -184,12 +183,14 @@ template<typename DerivedPolicy,
          typename StrictWeakOrdering>
 __host__ __device__
   void stable_sort(thrust::execution_policy<DerivedPolicy> &,
-                   RandomAccessIterator first,
-                   RandomAccessIterator last,
-                   StrictWeakOrdering comp)
+                   RandomAccessIterator,
+                   RandomAccessIterator,
+                   StrictWeakOrdering)
 {
-  // unimplemented primitive
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<RandomAccessIterator, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<RandomAccessIterator, false>::value)
+  , "unimplemented for this system"
+  );
 } // end stable_sort()
 
 
@@ -199,18 +200,20 @@ template<typename DerivedPolicy,
          typename StrictWeakOrdering>
 __host__ __device__
   void stable_sort_by_key(thrust::execution_policy<DerivedPolicy> &,
-                          RandomAccessIterator1 keys_first,
-                          RandomAccessIterator1 keys_last,
-                          RandomAccessIterator2 values_first,
-                          StrictWeakOrdering comp)
+                          RandomAccessIterator1,
+                          RandomAccessIterator1,
+                          RandomAccessIterator2,
+                          StrictWeakOrdering)
 {
-  // unimplemented primitive
-  THRUST_STATIC_ASSERT( (thrust::detail::depend_on_instantiation<RandomAccessIterator1, false>::value) );
+  THRUST_STATIC_ASSERT_MSG(
+    (thrust::detail::depend_on_instantiation<RandomAccessIterator1, false>::value)
+  , "unimplemented for this system"
+  );
 } // end stable_sort_by_key()
 
 
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

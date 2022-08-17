@@ -7,14 +7,12 @@
 #include <thrust/sequence.h>
 #include <algorithm>
 
-__THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_BEGIN
+THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_BEGIN
 
 
 template <class Vector>
 void TestGatherSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector map(5);  // gather indices
     Vector src(8);  // source vector
     Vector dst(5);  // destination vector
@@ -31,7 +29,7 @@ void TestGatherSimple(void)
     ASSERT_EQUAL(dst[3], 7);
     ASSERT_EQUAL(dst[4], 2);
 }
-DECLARE_VECTOR_UNITTEST(TestGatherSimple);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestGatherSimple);
 
 
 template<typename InputIterator, typename RandomAccessIterator, typename OutputIterator>
@@ -141,8 +139,6 @@ DECLARE_VARIABLE_UNITTEST(TestGatherToDiscardIterator);
 template <class Vector>
 void TestGatherIfSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector flg(5);  // predicate array
     Vector map(5);  // gather indices
     Vector src(8);  // source vector
@@ -161,7 +157,7 @@ void TestGatherIfSimple(void)
     ASSERT_EQUAL(dst[3], 7);
     ASSERT_EQUAL(dst[4], 0);
 }
-DECLARE_VECTOR_UNITTEST(TestGatherIfSimple);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestGatherIfSimple);
 
 template <typename T>
 struct is_even_gather_if
@@ -178,10 +174,10 @@ template<typename InputIterator1,
          typename RandomAccessIterator,
          typename OutputIterator>
 OutputIterator gather_if(my_system &system,
-                         InputIterator1       map_first,
-                         InputIterator1       map_last,
-                         InputIterator2       stencil,
-                         RandomAccessIterator input_first,
+                         InputIterator1, //       map_first,
+                         InputIterator1, //       map_last,
+                         InputIterator2, //       stencil,
+                         RandomAccessIterator, // input_first,
                          OutputIterator       result)
 {
     system.validate_dispatch();
@@ -210,10 +206,10 @@ template<typename InputIterator1,
          typename RandomAccessIterator,
          typename OutputIterator>
 OutputIterator gather_if(my_tag,
-                         InputIterator1       map_first,
-                         InputIterator1       map_last,
-                         InputIterator2       stencil,
-                         RandomAccessIterator input_first,
+                         InputIterator1, //       map_first,
+                         InputIterator1, //       map_last,
+                         InputIterator2, //       stencil,
+                         RandomAccessIterator, // input_first,
                          OutputIterator       result)
 {
     *result = 13;
@@ -315,8 +311,6 @@ DECLARE_VARIABLE_UNITTEST(TestGatherIfToDiscardIterator);
 template <typename Vector>
 void TestGatherCountingIterator(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector source(10);
     thrust::sequence(source.begin(), source.end(), 0);
 
@@ -352,6 +346,6 @@ void TestGatherCountingIterator(void)
 
     ASSERT_EQUAL(output, map);
 }
-DECLARE_VECTOR_UNITTEST(TestGatherCountingIterator);
+DECLARE_INTEGRAL_VECTOR_UNITTEST(TestGatherCountingIterator);
 
-__THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_END
+THRUST_DISABLE_MSVC_POSSIBLE_LOSS_OF_DATA_WARNING_END

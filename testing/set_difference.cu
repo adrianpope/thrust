@@ -169,11 +169,11 @@ DECLARE_VARIABLE_UNITTEST(TestSetDifferenceEquivalentRanges);
 template<typename T>
 void TestSetDifferenceMultiset(const size_t n)
 {
-  thrust::host_vector<T> temp = unittest::random_integers<T>(2 * n);
+  thrust::host_vector<T> vec = unittest::random_integers<T>(2 * n);
 
   // restrict elements to [min,13)
-  for(typename thrust::host_vector<T>::iterator i = temp.begin();
-      i != temp.end();
+  for(typename thrust::host_vector<T>::iterator i = vec.begin();
+      i != vec.end();
       ++i)
   {
     int temp = static_cast<int>(*i);
@@ -181,8 +181,8 @@ void TestSetDifferenceMultiset(const size_t n)
     *i = temp;
   }
 
-  thrust::host_vector<T> h_a(temp.begin(), temp.begin() + n);
-  thrust::host_vector<T> h_b(temp.begin() + n, temp.end());
+  thrust::host_vector<T> h_a(vec.begin(), vec.begin() + n);
+  thrust::host_vector<T> h_b(vec.begin() + n, vec.end());
 
   thrust::sort(h_a.begin(), h_a.end());
   thrust::sort(h_b.begin(), h_b.end());
@@ -211,3 +211,32 @@ void TestSetDifferenceMultiset(const size_t n)
 }
 DECLARE_VARIABLE_UNITTEST(TestSetDifferenceMultiset);
 
+// FIXME: disabled on Windows, because it causes a failure on the internal CI system in one specific configuration.
+// That failure will be tracked in a new NVBug, this is disabled to unblock submitting all the other changes.
+#if THRUST_HOST_COMPILER != THRUST_HOST_COMPILER_MSVC
+void TestSetDifferenceWithBigIndexesHelper(int magnitude)
+{
+    thrust::counting_iterator<long long> begin(0);
+    thrust::counting_iterator<long long> end = begin + (1ll << magnitude);
+    thrust::counting_iterator<long long> end_longer = end + 1;
+    ASSERT_EQUAL(thrust::distance(begin, end), 1ll << magnitude);
+
+    thrust::device_vector<long long> result;
+    result.resize(1);
+    thrust::set_difference(thrust::device, begin, end_longer, begin, end, result.begin());
+
+    thrust::host_vector<long long> expected;
+    expected.push_back(*end);
+
+    ASSERT_EQUAL(result, expected);
+}
+
+void TestSetDifferenceWithBigIndexes()
+{
+    TestSetDifferenceWithBigIndexesHelper(30);
+    TestSetDifferenceWithBigIndexesHelper(31);
+    TestSetDifferenceWithBigIndexesHelper(32);
+    TestSetDifferenceWithBigIndexesHelper(33);
+}
+DECLARE_UNITTEST(TestSetDifferenceWithBigIndexes);
+#endif

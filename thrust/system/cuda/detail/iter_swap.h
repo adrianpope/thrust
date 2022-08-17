@@ -17,22 +17,24 @@
 #pragma once
 
 #include <thrust/detail/config.h>
+
+#if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
+
+#include <thrust/system/cuda/config.h>
+
 #include <thrust/detail/raw_pointer_cast.h>
+#include <thrust/system/cuda/detail/execution_policy.h>
 #include <thrust/swap.h>
 
-namespace thrust
-{
-namespace system
-{
-namespace cuda
-{
-namespace detail
-{
+#include <nv/target>
+
+THRUST_NAMESPACE_BEGIN
+namespace cuda_cub {
 
 
-template<typename Pointer1, typename Pointer2>
+template<typename DerivedPolicy, typename Pointer1, typename Pointer2>
 inline __host__ __device__
-void iter_swap(tag, Pointer1 a, Pointer2 b)
+void iter_swap(thrust::cuda::execution_policy<DerivedPolicy> &, Pointer1 a, Pointer2 b)
 {
   // XXX war nvbugs/881631
   struct war_nvbugs_881631
@@ -50,16 +52,15 @@ void iter_swap(tag, Pointer1 a, Pointer2 b)
     }
   };
 
-#ifndef __CUDA_ARCH__
-  return war_nvbugs_881631::host_path(a,b);
-#else
-  return war_nvbugs_881631::device_path(a,b);
-#endif // __CUDA_ARCH__
+  NV_IF_TARGET(NV_IS_HOST, (
+    war_nvbugs_881631::host_path(a, b);
+  ), (
+    war_nvbugs_881631::device_path(a, b);
+  ));
+
 } // end iter_swap()
 
 
-} // end detail
-} // end cuda
-} // end system
-} // end thrust
-
+} // end cuda_cub
+THRUST_NAMESPACE_END
+#endif

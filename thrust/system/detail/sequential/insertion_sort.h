@@ -22,8 +22,7 @@
 #include <thrust/detail/function.h>
 #include <thrust/system/detail/sequential/copy_backward.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -32,7 +31,7 @@ namespace sequential
 {
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename RandomAccessIterator,
          typename StrictWeakOrdering>
 __host__ __device__
@@ -80,7 +79,7 @@ void insertion_sort(RandomAccessIterator first,
 }
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename RandomAccessIterator1,
          typename RandomAccessIterator2,
          typename StrictWeakOrdering>
@@ -149,5 +148,5 @@ void insertion_sort_by_key(RandomAccessIterator1 first1,
 } // end namespace sequential
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

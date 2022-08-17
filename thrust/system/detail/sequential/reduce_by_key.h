@@ -19,11 +19,9 @@
 #include <thrust/detail/config.h>
 #include <thrust/pair.h>
 #include <thrust/iterator/iterator_traits.h>
-#include <thrust/detail/type_traits/algorithm/intermediate_type_from_function_and_iterators.h>
 #include <thrust/system/detail/sequential/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -32,7 +30,7 @@ namespace sequential
 {
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy,
          typename InputIterator1,
          typename InputIterator2,
@@ -54,11 +52,8 @@ __host__ __device__
   typedef typename thrust::iterator_traits<InputIterator1>::value_type  InputKeyType;
   typedef typename thrust::iterator_traits<InputIterator2>::value_type  InputValueType;
 
-  typedef typename thrust::detail::intermediate_type_from_function_and_iterators<
-    InputIterator2,
-    OutputIterator2,
-    BinaryFunction
-  >::type TemporaryType;
+  // Use the input iterator's value type per https://wg21.link/P0571
+  using TemporaryType = typename thrust::iterator_value<InputIterator2>::type;
 
   if(keys_first != keys_last)
   {
@@ -103,5 +98,5 @@ __host__ __device__
 } // end namespace sequential
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

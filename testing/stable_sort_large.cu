@@ -2,6 +2,7 @@
 #include <thrust/sort.h>
 #include <thrust/functional.h>
 
+
 template <typename T, unsigned int N>
 void _TestStableSortWithLargeKeys(void)
 {
@@ -10,6 +11,7 @@ void _TestStableSortWithLargeKeys(void)
     thrust::host_vector< FixedVector<T,N> > h_keys(n);
 
     for(size_t i = 0; i < n; i++)
+        // XXX Use proper random number generation facility.
         h_keys[i] = FixedVector<T,N>(rand());
 
     thrust::device_vector< FixedVector<T,N> > d_keys = h_keys;
@@ -31,10 +33,10 @@ void TestStableSortWithLargeKeys(void)
     _TestStableSortWithLargeKeys<int,   64>();
     _TestStableSortWithLargeKeys<int,  128>();
     _TestStableSortWithLargeKeys<int,  256>();
-    _TestStableSortWithLargeKeys<int,  512>();
-    _TestStableSortWithLargeKeys<int, 1024>();
 
 // XXX these take too long to compile
+//    _TestStableSortWithLargeKeys<int,  512>();
+//    _TestStableSortWithLargeKeys<int, 1024>();
 //    _TestStableSortWithLargeKeys<int, 2048>();
 //    _TestStableSortWithLargeKeys<int, 4096>();
 //    _TestStableSortWithLargeKeys<int, 8192>();

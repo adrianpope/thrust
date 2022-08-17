@@ -27,8 +27,7 @@
 #include <thrust/system/detail/errno.h>
 #include <iostream>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -54,6 +53,8 @@ template<typename T> struct is_error_condition_enum : public thrust::detail::fal
 namespace errc
 {
 
+/*! An enum containing common error codes.
+ */
 enum errc_t
 {
   address_family_not_supported       = detail::eafnosupport,
@@ -513,7 +514,7 @@ namespace errc = system::errc;
 using system::generic_category;
 using system::system_category;
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/detail/error_category.inl>
 #include <thrust/system/detail/error_code.inl>

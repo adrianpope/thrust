@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file find.inl
- *  \brief Inline file for find.h
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/iterator/iterator_traits.h>
@@ -25,11 +22,9 @@
 #include <thrust/system/detail/generic/find.h>
 #include <thrust/system/detail/adl/find.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
-
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename InputIterator, typename T>
 __host__ __device__
 InputIterator find(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -42,7 +37,7 @@ InputIterator find(const thrust::detail::execution_policy_base<DerivedPolicy> &e
 } // end find()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename InputIterator, typename Predicate>
 __host__ __device__
 InputIterator find_if(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -55,7 +50,7 @@ InputIterator find_if(const thrust::detail::execution_policy_base<DerivedPolicy>
 } // end find_if()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename InputIterator, typename Predicate>
 __host__ __device__
 InputIterator find_if_not(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -74,11 +69,11 @@ InputIterator find(InputIterator first,
                    const T& value)
 {
   using thrust::system::detail::generic::select_system;
-  
+
   typedef typename thrust::iterator_system<InputIterator>::type System;
-  
+
   System system;
-  
+
   return thrust::find(select_system(system), first, last, value);
 }
 
@@ -88,11 +83,11 @@ InputIterator find_if(InputIterator first,
                       Predicate pred)
 {
   using thrust::system::detail::generic::select_system;
-  
+
   typedef typename thrust::iterator_system<InputIterator>::type System;
-  
+
   System system;
-  
+
   return thrust::find_if(select_system(system), first, last, pred);
 }
 
@@ -102,14 +97,12 @@ InputIterator find_if_not(InputIterator first,
                           Predicate pred)
 {
   using thrust::system::detail::generic::select_system;
-  
+
   typedef typename thrust::iterator_system<InputIterator>::type System;
-  
+
   System system;
-  
+
   return thrust::find_if_not(select_system(system), first, last, pred);
 }
 
-
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/tabulate.h>
 #include <thrust/iterator/iterator_traits.h>
@@ -21,11 +23,10 @@
 #include <thrust/system/detail/generic/tabulate.h>
 #include <thrust/system/detail/adl/tabulate.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename ForwardIterator, typename UnaryOperation>
 __host__ __device__
   void tabulate(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -53,5 +54,5 @@ template<typename ForwardIterator, typename UnaryOperation>
 } // end tabulate()
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

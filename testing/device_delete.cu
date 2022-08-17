@@ -4,26 +4,29 @@
 #include <thrust/device_new.h>
 #include <thrust/device_delete.h>
 
+#include <nv/target>
+
 struct Foo
 {
   __host__ __device__
   Foo(void)
-    :set_me_upon_destruction(0)
+    : set_me_upon_destruction{nullptr}
   {}
 
   __host__ __device__
   ~Foo(void)
   {
-#ifdef __CUDA_ARCH__
-    // __device__ overload
-    if(set_me_upon_destruction != 0)
-      *set_me_upon_destruction = true;
-#endif
+    NV_IF_TARGET(NV_IS_DEVICE, (
+      if (set_me_upon_destruction != nullptr)
+      {
+        *set_me_upon_destruction = true;
+      }));
   }
 
   bool *set_me_upon_destruction;
 };
 
+#if !defined(__QNX__)
 void TestDeviceDeleteDestructorInvocation(void)
 {
   KNOWN_FAILURE;
@@ -43,4 +46,4 @@ void TestDeviceDeleteDestructorInvocation(void)
 //  ASSERT_EQUAL(true, destructor_flag[0]);
 }
 DECLARE_UNITTEST(TestDeviceDeleteDestructorInvocation);
-
+#endif

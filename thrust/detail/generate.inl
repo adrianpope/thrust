@@ -14,11 +14,9 @@
  *  limitations under the License.
  */
 
+#pragma once
 
-/*! \file generate.inl
- *  \author Jared Hoberock
- *  \brief Inline file for generate.h.
- */
+#include <thrust/detail/config.h>
 
 #include <thrust/generate.h>
 #include <thrust/iterator/iterator_traits.h>
@@ -26,11 +24,9 @@
 #include <thrust/system/detail/generic/generate.h>
 #include <thrust/system/detail/adl/generate.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
-
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy,
          typename ForwardIterator,
          typename Generator>
@@ -45,7 +41,7 @@ __host__ __device__
 } // end generate()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy,
          typename OutputIterator,
          typename Size,
@@ -93,6 +89,4 @@ template<typename OutputIterator,
   return thrust::generate_n(select_system(system), first, n, gen);
 } // end generate_n()
 
-
-} // end thrust
-
+THRUST_NAMESPACE_END

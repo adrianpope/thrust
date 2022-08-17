@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file replace.inl
- *  \brief Inline file for replace.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/replace.h>
@@ -26,11 +23,10 @@
 #include <thrust/system/detail/generic/replace.h>
 #include <thrust/system/detail/adl/replace.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename ForwardIterator, typename T>
 __host__ __device__
   void replace(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -43,7 +39,7 @@ __host__ __device__
 } // end replace()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename ForwardIterator, typename Predicate, typename T>
 __host__ __device__
   void replace_if(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -56,7 +52,7 @@ __host__ __device__
 } // end replace_if()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename ForwardIterator, typename InputIterator, typename Predicate, typename T>
 __host__ __device__
   void replace_if(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -70,7 +66,7 @@ __host__ __device__
 } // end replace_if()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename InputIterator, typename OutputIterator, typename T>
 __host__ __device__
   OutputIterator replace_copy(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -84,7 +80,7 @@ __host__ __device__
 } // end replace_copy()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename InputIterator, typename OutputIterator, typename Predicate, typename T>
 __host__ __device__
   OutputIterator replace_copy_if(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -98,7 +94,7 @@ __host__ __device__
 } // end replace_copy_if()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename Predicate, typename T>
 __host__ __device__
   OutputIterator replace_copy_if(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
@@ -218,5 +214,5 @@ template<typename ForwardIterator, typename T>
 } // end replace()
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

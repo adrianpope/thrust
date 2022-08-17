@@ -1,7 +1,3 @@
-targets/
-*.pyc
-*.bak
-*.swp
-*.sconsign.dblite
-*.pgm
-*~
+discrete_voronoi.pgm
+*build*/
+.idea/

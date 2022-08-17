@@ -21,14 +21,12 @@
 #include <thrust/pair.h>
 #include <thrust/detail/pointer.h>
 #include <thrust/detail/raw_pointer_cast.h>
+#include <thrust/detail/execute_with_allocator.h>
 #include <thrust/system/detail/generic/temporary_buffer.h>
 #include <thrust/system/detail/adl/temporary_buffer.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
-{
-namespace get_temporary_buffer_detail
 {
 
 
@@ -45,32 +43,33 @@ __host__ __device__
 } // end down_cast_pair()
 
 
-} // end get_temporary_buffer_detail
 } // end detail
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename T, typename DerivedPolicy>
 __host__ __device__
   thrust::pair<thrust::pointer<T,DerivedPolicy>, typename thrust::pointer<T,DerivedPolicy>::difference_type>
     get_temporary_buffer(const thrust::detail::execution_policy_base<DerivedPolicy> &exec, typename thrust::pointer<T,DerivedPolicy>::difference_type n)
 {
+  using thrust::detail::get_temporary_buffer; // execute_with_allocator
   using thrust::system::detail::generic::get_temporary_buffer;
 
-  return thrust::detail::get_temporary_buffer_detail::down_cast_pair<T,DerivedPolicy>(get_temporary_buffer<T>(thrust::detail::derived_cast(thrust::detail::strip_const(exec)), n));
+  return thrust::detail::down_cast_pair<T,DerivedPolicy>(get_temporary_buffer<T>(thrust::detail::derived_cast(thrust::detail::strip_const(exec)), n));
 } // end get_temporary_buffer()
 
 
-__thrust_hd_warning_disable__
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename Pointer>
 __host__ __device__
-  void return_temporary_buffer(const thrust::detail::execution_policy_base<DerivedPolicy> &exec, Pointer p)
+  void return_temporary_buffer(const thrust::detail::execution_policy_base<DerivedPolicy> &exec, Pointer p, std::ptrdiff_t n)
 {
+  using thrust::detail::return_temporary_buffer; // execute_with_allocator
   using thrust::system::detail::generic::return_temporary_buffer;
 
-  return return_temporary_buffer(thrust::detail::derived_cast(thrust::detail::strip_const(exec)), p);
+  return return_temporary_buffer(thrust::detail::derived_cast(thrust::detail::strip_const(exec)), p, n);
 } // end return_temporary_buffer()
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

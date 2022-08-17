@@ -2,7 +2,7 @@
  *  Copyright 2008-2013 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in ctbbliance with the License.
+ *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -21,8 +21,7 @@
 #include <thrust/iterator/detail/any_system_tag.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 // put the canonical tag in the same ns as the backend's entry points
@@ -58,11 +57,8 @@ template<typename Derived>
   struct execution_policy
     : thrust::system::cpp::detail::execution_policy<Derived>
 {
-  // allow conversion to tag
-  inline operator tag () const
-  {
-    return tag();
-  }
+  typedef tag tag_type; 
+  operator tag() const { return tag(); }
 };
 
 } // end detail
@@ -82,5 +78,5 @@ using thrust::system::tbb::execution_policy;
 using thrust::system::tbb::tag;
 
 } // end tbb
-} // end thrust
+THRUST_NAMESPACE_END
 

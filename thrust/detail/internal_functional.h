@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2018 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,13 +23,15 @@
 
 #include <thrust/tuple.h>
 #include <thrust/iterator/iterator_traits.h>
+#include <thrust/detail/config.h>
+#include <thrust/detail/static_assert.h>
 #include <thrust/detail/type_traits.h>
 #include <thrust/iterator/detail/tuple_of_iterator_references.h>
 #include <thrust/detail/raw_reference_cast.h>
-#include <memory> // for ::new
+#include <thrust/detail/memory_wrapper.h> // for ::new
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -38,12 +40,12 @@ template<typename Predicate>
 struct unary_negate
 {
   typedef bool result_type;
-  
+
   Predicate pred;
-  
+
   __host__ __device__
   explicit unary_negate(const Predicate& pred) : pred(pred) {}
-  
+
   template <typename T>
   __host__ __device__
   bool operator()(const T& x)
@@ -57,12 +59,12 @@ template<typename Predicate>
 struct binary_negate
 {
   typedef bool result_type;
-  
+
   Predicate pred;
-  
+
   __host__ __device__
   explicit binary_negate(const Predicate& pred) : pred(pred) {}
-  
+
   template <typename T1, typename T2>
   __host__ __device__
   bool operator()(const T1& x, const T2& y)
@@ -91,13 +93,13 @@ template<typename Predicate, typename IntegralType>
 struct predicate_to_integral
 {
   Predicate pred;
-  
+
   __host__ __device__
   explicit predicate_to_integral(const Predicate& pred) : pred(pred) {}
-  
+
   template <typename T>
   __host__ __device__
-  bool operator()(const T& x)
+  IntegralType operator()(const T& x)
   {
     return pred(x) ? IntegralType(1) : IntegralType(0);
   }
@@ -109,7 +111,7 @@ template<typename T1>
 struct equal_to
 {
   typedef bool result_type;
-  
+
   template <typename T2>
   __host__ __device__
   bool operator()(const T1& lhs, const T2& rhs) const
@@ -123,10 +125,10 @@ template<typename T2>
 struct equal_to_value
 {
   T2 rhs;
-  
+
   __host__ __device__
   equal_to_value(const T2& rhs) : rhs(rhs) {}
-  
+
   template <typename T1>
   __host__ __device__
   bool operator()(const T1& lhs) const
@@ -139,17 +141,17 @@ template<typename Predicate>
 struct tuple_binary_predicate
 {
   typedef bool result_type;
-  
+
   __host__ __device__
   tuple_binary_predicate(const Predicate& p) : pred(p) {}
-  
+
   template<typename Tuple>
   __host__ __device__
   bool operator()(const Tuple& t) const
-  { 
+  {
     return pred(thrust::get<0>(t), thrust::get<1>(t));
   }
-  
+
   mutable Predicate pred;
 };
 
@@ -157,17 +159,17 @@ template<typename Predicate>
 struct tuple_not_binary_predicate
 {
   typedef bool result_type;
-  
+
   __host__ __device__
   tuple_not_binary_predicate(const Predicate& p) : pred(p) {}
-  
+
   template<typename Tuple>
   __host__ __device__
   bool operator()(const Tuple& t) const
-  { 
+  {
     return !pred(thrust::get<0>(t), thrust::get<1>(t));
   }
-  
+
   mutable Predicate pred;
 };
 
@@ -176,6 +178,7 @@ template<typename Generator>
 {
   typedef void result_type;
 
+  __thrust_exec_check_disable__
   __host__ __device__
   host_generate_functor(Generator g)
     : gen(g) {}
@@ -209,6 +212,7 @@ template<typename Generator>
 {
   typedef void result_type;
 
+  __thrust_exec_check_disable__
   __host__ __device__
   device_generate_functor(Generator g)
     : gen(g) {}
@@ -271,19 +275,17 @@ template<typename T>
   struct is_non_const_reference
     : thrust::detail::and_<
         thrust::detail::not_<thrust::detail::is_const<T> >,
-        thrust::detail::is_reference<T>
+        thrust::detail::or_<thrust::detail::is_reference<T>,
+                            thrust::detail::is_proxy_reference<T> >
       >
 {};
 
 template<typename T> struct is_tuple_of_iterator_references : thrust::detail::false_type {};
 
-template<typename T1, typename T2, typename T3,
-         typename T4, typename T5, typename T6,
-         typename T7, typename T8, typename T9,
-         typename T10>
+template<typename... Ts>
   struct is_tuple_of_iterator_references<
     thrust::detail::tuple_of_iterator_references<
-      T1,T2,T3,T4,T5,T6,T7,T8,T9,T10
+      Ts...
     >
   >
     : thrust::detail::true_type
@@ -311,7 +313,7 @@ template<typename UnaryFunction>
     : f(f)
   {}
 
-  __thrust_hd_warning_disable__
+  __thrust_exec_check_disable__
   template<typename Tuple>
   inline __host__ __device__
   typename enable_if_non_const_reference_or_tuple_of_iterator_references<
@@ -334,7 +336,7 @@ template<typename BinaryFunction>
     : f(f)
   {}
 
-  __thrust_hd_warning_disable__
+  __thrust_exec_check_disable__
   template<typename Tuple>
   inline __host__ __device__
   typename enable_if_non_const_reference_or_tuple_of_iterator_references<
@@ -358,7 +360,7 @@ struct unary_transform_if_functor
     : unary_op(unary_op), pred(pred)
   {}
 
-  __thrust_hd_warning_disable__
+  __thrust_exec_check_disable__
   template<typename Tuple>
   inline __host__ __device__
   typename enable_if_non_const_reference_or_tuple_of_iterator_references<
@@ -385,7 +387,7 @@ struct unary_transform_if_with_stencil_functor
     : unary_op(unary_op), pred(pred)
   {}
 
-  __thrust_hd_warning_disable__
+  __thrust_exec_check_disable__
   template<typename Tuple>
   inline __host__ __device__
   typename enable_if_non_const_reference_or_tuple_of_iterator_references<
@@ -407,9 +409,9 @@ struct binary_transform_if_functor
 
   __host__ __device__
   binary_transform_if_functor(BinaryFunction binary_op, Predicate pred)
-    : binary_op(binary_op), pred(pred) {} 
+    : binary_op(binary_op), pred(pred) {}
 
-  __thrust_hd_warning_disable__
+  __thrust_exec_check_disable__
   template<typename Tuple>
   inline __host__ __device__
   typename enable_if_non_const_reference_or_tuple_of_iterator_references<
@@ -461,13 +463,24 @@ struct fill_functor
 {
   T exemplar;
 
+  __thrust_exec_check_disable__
   __host__ __device__
-  fill_functor(const T& _exemplar) 
+  fill_functor(const T& _exemplar)
     : exemplar(_exemplar) {}
 
+  __thrust_exec_check_disable__
+  __host__ __device__
+  fill_functor(const fill_functor & other)
+    :exemplar(other.exemplar){}
+
+  __thrust_exec_check_disable__
+  __host__ __device__
+  ~fill_functor() {}
+
+  __thrust_exec_check_disable__
   __host__ __device__
   T operator()(void) const
-  { 
+  {
     return exemplar;
   }
 };
@@ -478,9 +491,20 @@ template<typename T>
 {
   T exemplar;
 
+  __thrust_exec_check_disable__
   __host__ __device__
-  uninitialized_fill_functor(T x):exemplar(x){}
+  uninitialized_fill_functor(const T & x):exemplar(x){}
 
+  __thrust_exec_check_disable__
+  __host__ __device__
+  uninitialized_fill_functor(const uninitialized_fill_functor & other)
+    :exemplar(other.exemplar){}
+
+  __thrust_exec_check_disable__
+  __host__ __device__
+  ~uninitialized_fill_functor() {}
+
+  __thrust_exec_check_disable__
   __host__ __device__
   void operator()(T &x)
   {
@@ -530,5 +554,5 @@ template<typename Compare>
 
 
 } // end namespace detail
-} // end namespace thrust
 
+THRUST_NAMESPACE_END

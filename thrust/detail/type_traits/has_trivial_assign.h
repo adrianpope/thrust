@@ -25,8 +25,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -42,11 +41,13 @@ template<typename T> struct has_trivial_assign
 #if (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 3)
       || __has_trivial_assign(T)
 #endif // GCC VERSION
+#elif THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_CLANG
+      || __has_trivial_assign(T)
 #endif // THRUST_HOST_COMPILER
     >
 {};
 
 } // end detail
 
-} // end thrust
+THRUST_NAMESPACE_END
 

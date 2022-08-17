@@ -7,7 +7,7 @@
 template<typename Vector> \
   struct TestFunctionalPlaceholders##name \
 { \
-  void operator()(const size_t dummy) \
+  void operator()(const size_t) \
   { \
     static const size_t num_samples = 10000; \
     const size_t zero = 0; \
@@ -33,7 +33,7 @@ template<typename Vector> \
     ASSERT_ALMOST_EQUAL(reference, result); \
   } \
 }; \
-VectorUnitTest<TestFunctionalPlaceholders##name, type_list, thrust::device_vector, thrust::device_malloc_allocator> TestFunctionalPlaceholders##name##DeviceInstance; \
+VectorUnitTest<TestFunctionalPlaceholders##name, type_list, thrust::device_vector, thrust::device_allocator> TestFunctionalPlaceholders##name##DeviceInstance; \
 VectorUnitTest<TestFunctionalPlaceholders##name, type_list, thrust::host_vector, std::allocator> TestFunctionalPlaceholders##name##HostInstance;
 
 BINARY_FUNCTIONAL_PLACEHOLDERS_TEST(Plus,       +, thrust::plus,       ThirtyTwoBitTypes);
@@ -65,8 +65,8 @@ template<typename T>
   struct unary_plus_reference
 {
   __host__ __device__ T operator()(const T &x) const
-  {
-    return +x;
+  { // Static cast to undo integral promotion
+    return static_cast<T>(+x);
   }
 };
 

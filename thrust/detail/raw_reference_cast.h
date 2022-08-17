@@ -29,8 +29,7 @@
 // raw_reference_cast depends on metafunctions such as is_unwrappable and raw_reference
 // we need to be sure that these metafunctions are completely defined (including specializations) before they are instantiated by raw_reference_cast
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -48,26 +47,12 @@ template<typename T>
 
 // specialize is_unwrappable
 // a tuple is_unwrappable if any of its elements is_unwrappable
-template<
-  typename T0, typename T1, typename T2,
-  typename T3, typename T4, typename T5,
-  typename T6, typename T7, typename T8,
-  typename T9
->
+template<typename... Ts>
   struct is_unwrappable<
-    thrust::tuple<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>
+    thrust::tuple<Ts...>
   >
     : or_<
-        is_unwrappable<T0>,
-        is_unwrappable<T1>,
-        is_unwrappable<T2>,
-        is_unwrappable<T3>,
-        is_unwrappable<T4>,
-        is_unwrappable<T5>,
-        is_unwrappable<T6>,
-        is_unwrappable<T7>,
-        is_unwrappable<T8>,
-        is_unwrappable<T9>
+        is_unwrappable<Ts>...
       >
 {};
 
@@ -75,25 +60,13 @@ template<
 // specialize is_unwrappable
 // a tuple_of_iterator_references is_unwrappable if any of its elements is_unwrappable
 template<
-  typename T0, typename T1, typename T2,
-  typename T3, typename T4, typename T5,
-  typename T6, typename T7, typename T8,
-  typename T9
+  typename... Ts
 >
   struct is_unwrappable<
-    thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>
+    thrust::detail::tuple_of_iterator_references<Ts...>
   >
     : or_<
-        is_unwrappable<T0>,
-        is_unwrappable<T1>,
-        is_unwrappable<T2>,
-        is_unwrappable<T3>,
-        is_unwrappable<T4>,
-        is_unwrappable<T5>,
-        is_unwrappable<T6>,
-        is_unwrappable<T7>,
-        is_unwrappable<T8>,
-        is_unwrappable<T9>
+        is_unwrappable<Ts>...
       >
 {};
 
@@ -137,7 +110,7 @@ template<typename T>
 
 
 template<typename T>
-  struct raw_reference : 
+  struct raw_reference :
     raw_reference_detail::raw_reference_impl<T>
 {};
 
@@ -173,51 +146,27 @@ template<typename T>
 
 // recurse on tuples
 template <
-  typename T0, typename T1, typename T2,
-  typename T3, typename T4, typename T5,
-  typename T6, typename T7, typename T8,
-  typename T9
+  typename... Ts
 >
   struct raw_reference_tuple_helper<
-    thrust::tuple<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>
+    thrust::tuple<Ts...>
   >
 {
   typedef thrust::tuple<
-    typename raw_reference_tuple_helper<T0>::type,
-    typename raw_reference_tuple_helper<T1>::type,
-    typename raw_reference_tuple_helper<T2>::type,
-    typename raw_reference_tuple_helper<T3>::type,
-    typename raw_reference_tuple_helper<T4>::type,
-    typename raw_reference_tuple_helper<T5>::type,
-    typename raw_reference_tuple_helper<T6>::type,
-    typename raw_reference_tuple_helper<T7>::type,
-    typename raw_reference_tuple_helper<T8>::type,
-    typename raw_reference_tuple_helper<T9>::type
+    typename raw_reference_tuple_helper<Ts>::type...
   > type;
 };
 
 
 template <
-  typename T0, typename T1, typename T2,
-  typename T3, typename T4, typename T5,
-  typename T6, typename T7, typename T8,
-  typename T9
+  typename... Ts
 >
   struct raw_reference_tuple_helper<
-    thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>
+    thrust::detail::tuple_of_iterator_references<Ts...>
   >
 {
   typedef thrust::detail::tuple_of_iterator_references<
-    typename raw_reference_tuple_helper<T0>::type,
-    typename raw_reference_tuple_helper<T1>::type,
-    typename raw_reference_tuple_helper<T2>::type,
-    typename raw_reference_tuple_helper<T3>::type,
-    typename raw_reference_tuple_helper<T4>::type,
-    typename raw_reference_tuple_helper<T5>::type,
-    typename raw_reference_tuple_helper<T6>::type,
-    typename raw_reference_tuple_helper<T7>::type,
-    typename raw_reference_tuple_helper<T8>::type,
-    typename raw_reference_tuple_helper<T9>::type
+    typename raw_reference_tuple_helper<Ts>::type...
   > type;
 };
 
@@ -232,17 +181,14 @@ template <
 //   then the raw_reference of tuple_type is a tuple of its members' raw_references
 //   else the raw_reference of tuple_type is tuple_type &
 template <
-  typename T0, typename T1, typename T2,
-  typename T3, typename T4, typename T5,
-  typename T6, typename T7, typename T8,
-  typename T9
+  typename... Ts
 >
   struct raw_reference<
-    thrust::tuple<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>
+    thrust::tuple<Ts...>
   >
 {
   private:
-    typedef thrust::tuple<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9> tuple_type;
+    typedef thrust::tuple<Ts...> tuple_type;
 
   public:
     typedef typename eval_if<
@@ -254,17 +200,14 @@ template <
 
 
 template <
-  typename T0, typename T1, typename T2,
-  typename T3, typename T4, typename T5,
-  typename T6, typename T7, typename T8,
-  typename T9
+  typename... Ts
 >
   struct raw_reference<
-    thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>
+    thrust::detail::tuple_of_iterator_references<Ts...>
   >
 {
   private:
-    typedef detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9> tuple_type;
+    typedef detail::tuple_of_iterator_references<Ts...> tuple_type;
 
   public:
     typedef typename raw_reference_detail::raw_reference_tuple_helper<tuple_type>::type type;
@@ -283,31 +226,28 @@ template <
 
 // provide declarations of raw_reference_cast's overloads for raw_reference_caster below
 template<typename T>
-inline __host__ __device__
+__host__ __device__
 typename detail::raw_reference<T>::type
   raw_reference_cast(T &ref);
 
 
 template<typename T>
-inline __host__ __device__
+__host__ __device__
 typename detail::raw_reference<const T>::type
   raw_reference_cast(const T &ref);
 
 
 template<
-  typename T0, typename T1, typename T2,
-  typename T3, typename T4, typename T5,
-  typename T6, typename T7, typename T8,
-  typename T9
+  typename... Ts
 >
 __host__ __device__
 typename detail::enable_if_unwrappable<
-  thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>,
+  thrust::detail::tuple_of_iterator_references<Ts...>,
   typename detail::raw_reference<
-    thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>
+    thrust::detail::tuple_of_iterator_references<Ts...>
   >::type
 >::type
-raw_reference_cast(thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9> t);
+raw_reference_cast(thrust::detail::tuple_of_iterator_references<Ts...> t);
 
 
 namespace detail
@@ -331,18 +271,15 @@ struct raw_reference_caster
   }
 
   template<
-    typename T0, typename T1, typename T2,
-    typename T3, typename T4, typename T5,
-    typename T6, typename T7, typename T8,
-    typename T9
+    typename... Ts
   >
   __host__ __device__
   typename detail::raw_reference<
-    thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>
+    thrust::detail::tuple_of_iterator_references<Ts...>
   >::type
-  operator()(thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9> t,
+  operator()(thrust::detail::tuple_of_iterator_references<Ts...> t,
              typename enable_if<
-               is_unwrappable<thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9> >::value
+               is_unwrappable<thrust::detail::tuple_of_iterator_references<Ts...> >::value
              >::type * = 0)
   {
     return thrust::raw_reference_cast(t);
@@ -354,7 +291,7 @@ struct raw_reference_caster
 
 
 template<typename T>
-inline __host__ __device__
+__host__ __device__
 typename detail::raw_reference<T>::type
   raw_reference_cast(T &ref)
 {
@@ -363,7 +300,7 @@ typename detail::raw_reference<T>::type
 
 
 template<typename T>
-inline __host__ __device__
+__host__ __device__
 typename detail::raw_reference<const T>::type
   raw_reference_cast(const T &ref)
 {
@@ -372,19 +309,16 @@ typename detail::raw_reference<const T>::type
 
 
 template<
-  typename T0, typename T1, typename T2,
-  typename T3, typename T4, typename T5,
-  typename T6, typename T7, typename T8,
-  typename T9
+  typename... Ts
 >
 __host__ __device__
 typename detail::enable_if_unwrappable<
-  thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>,
+  thrust::detail::tuple_of_iterator_references<Ts...>,
   typename detail::raw_reference<
-    thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>
+    thrust::detail::tuple_of_iterator_references<Ts...>
   >::type
 >::type
-raw_reference_cast(thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9> t)
+raw_reference_cast(thrust::detail::tuple_of_iterator_references<Ts...> t)
 {
   thrust::detail::raw_reference_caster f;
 
@@ -394,5 +328,5 @@ raw_reference_cast(thrust::detail::tuple_of_iterator_references<T0,T1,T2,T3,T4,T
 } // end raw_reference_cast
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

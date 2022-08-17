@@ -20,7 +20,7 @@ template<typename T>
 template<typename Vector>
   struct TestFunctionalPlaceholdersValue
 {
-  void operator()(const size_t dummy)
+  void operator()(const size_t)
   {
     const size_t n = 10000;
     typedef typename Vector::value_type T;
@@ -39,13 +39,13 @@ template<typename Vector>
     ASSERT_ALMOST_EQUAL(reference, result);
   }
 };
-VectorUnitTest<TestFunctionalPlaceholdersValue, ThirtyTwoBitTypes, thrust::device_vector, thrust::device_malloc_allocator> TestFunctionalPlaceholdersValueDevice;
+VectorUnitTest<TestFunctionalPlaceholdersValue, ThirtyTwoBitTypes, thrust::device_vector, thrust::device_allocator> TestFunctionalPlaceholdersValueDevice;
 VectorUnitTest<TestFunctionalPlaceholdersValue, ThirtyTwoBitTypes, thrust::host_vector, std::allocator> TestFunctionalPlaceholdersValueHost;
 
 template<typename Vector>
   struct TestFunctionalPlaceholdersTransformIterator
 {
-  void operator()(const size_t dummy)
+  void operator()(const size_t)
   {
     const size_t n = 10000;
     typedef typename Vector::value_type T;
@@ -68,6 +68,6 @@ template<typename Vector>
     ASSERT_ALMOST_EQUAL(reference, result);
   }
 };
-VectorUnitTest<TestFunctionalPlaceholdersTransformIterator, ThirtyTwoBitTypes, thrust::device_vector, thrust::device_malloc_allocator> TestFunctionalPlaceholdersTransformIteratorInstanceDevice;
+VectorUnitTest<TestFunctionalPlaceholdersTransformIterator, ThirtyTwoBitTypes, thrust::device_vector, thrust::device_allocator> TestFunctionalPlaceholdersTransformIteratorInstanceDevice;
 VectorUnitTest<TestFunctionalPlaceholdersTransformIterator, ThirtyTwoBitTypes, thrust::host_vector, std::allocator> TestFunctionalPlaceholdersTransformIteratorInstanceHost;
 

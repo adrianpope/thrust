@@ -5,8 +5,6 @@
 template <class Vector>
 void TestCountSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector data(5);
     data[0] = 1; data[1] = 1; data[2] = 0; data[3] = 0; data[4] = 1;
 
@@ -68,8 +66,6 @@ DECLARE_VARIABLE_UNITTEST(TestCountIf);
 template <typename Vector>
 void TestCountFromConstIteratorSimple(void)
 {
-    typedef typename Vector::value_type T;
-
     Vector data(5);
     data[0] = 1; data[1] = 1; data[2] = 0; data[3] = 0; data[4] = 1;
 
@@ -103,7 +99,7 @@ DECLARE_UNITTEST(TestCountDispatchExplicit);
 
 
 template<typename InputIterator, typename EqualityComparable>
-int count(my_tag, InputIterator first, InputIterator, EqualityComparable x)
+int count(my_tag, InputIterator /*first*/, InputIterator, EqualityComparable x)
 {
     return x;
 }
@@ -120,3 +116,22 @@ void TestCountDispatchImplicit()
 }
 DECLARE_UNITTEST(TestCountDispatchImplicit);
 
+void TestCountWithBigIndexesHelper(int magnitude)
+{
+    thrust::counting_iterator<long long> begin(1);
+    thrust::counting_iterator<long long> end = begin + (1ll << magnitude);
+    ASSERT_EQUAL(thrust::distance(begin, end), 1ll << magnitude);
+
+    long long result = thrust::count(thrust::device, begin, end, (1ll << magnitude) - 17);
+
+    ASSERT_EQUAL(result, 1);
+}
+
+void TestCountWithBigIndexes()
+{
+    TestCountWithBigIndexesHelper(30);
+    TestCountWithBigIndexesHelper(31);
+    TestCountWithBigIndexesHelper(32);
+    TestCountWithBigIndexesHelper(33);
+}
+DECLARE_UNITTEST(TestCountWithBigIndexes);

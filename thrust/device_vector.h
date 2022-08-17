@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2018 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,26 +15,23 @@
  */
 
 
-/*! \file device_vector.h
- *  \brief A dynamically-sizable array of elements which reside in the "device" memory space
+/*! \file
+ *  \brief A dynamically-sizable array of elements which resides in memory
+ *         accessible to devices.
  */
 
 #pragma once
 
 #include <thrust/detail/config.h>
-#include <thrust/device_malloc_allocator.h>
 #include <thrust/detail/vector_base.h>
+#include <thrust/device_allocator.h>
+
 #include <vector>
+#include <utility>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
-// forward declaration of host_vector
-template<typename T, typename Alloc> class host_vector;
-
-/*! \addtogroup container_classes Container Classes
- *  \addtogroup device_containers Device Containers
- *  \ingroup container_classes
+/*! \addtogroup containers Containers
  *  \{
  */
 
@@ -42,13 +39,15 @@ template<typename T, typename Alloc> class host_vector;
  *  constant time removal of elements at the end, and linear time insertion
  *  and removal of elements at the beginning or in the middle. The number of
  *  elements in a \p device_vector may vary dynamically; memory management is
- *  automatic. The memory associated with a \p device_vector resides in the memory
- *  space of a parallel device.
+ *  automatic. The memory associated with a \p device_vector resides in the
+ *  memory accessible to devices.
  *
- *  \see http://www.sgi.com/tech/stl/Vector.html
+ *  \see https://en.cppreference.com/w/cpp/container/vector
+ *  \see device_allocator
  *  \see host_vector
+ *  \see universal_vector
  */
-template<typename T, typename Alloc = thrust::device_malloc_allocator<T> >
+template<typename T, typename Alloc = thrust::device_allocator<T> >
   class device_vector
     : public detail::vector_base<T,Alloc>
 {
@@ -65,47 +64,106 @@ template<typename T, typename Alloc = thrust::device_malloc_allocator<T> >
 
     /*! This constructor creates an empty \p device_vector.
      */
-    __host__
     device_vector(void)
       :Parent() {}
+
+    /*! This constructor creates an empty \p device_vector.
+     *  \param alloc The allocator to use by this device_vector.
+     */
+    device_vector(const Alloc &alloc)
+      :Parent(alloc) {}
+
+    /*! The destructor erases the elements.
+     */
+    //  Define an empty destructor to explicitly specify
+    //  its execution space qualifier, as a workaround for nvcc warning
+    ~device_vector(void) {}
 
     /*! This constructor creates a \p device_vector with the given
      *  size.
      *  \param n The number of elements to initially create.
      */
-    __host__
     explicit device_vector(size_type n)
       :Parent(n) {}
+
+    /*! This constructor creates a \p device_vector with the given
+     *  size.
+     *  \param n The number of elements to initially create.
+     *  \param alloc The allocator to use by this device_vector.
+     */
+    explicit device_vector(size_type n, const Alloc &alloc)
+      :Parent(n,alloc) {}
 
     /*! This constructor creates a \p device_vector with copies
      *  of an exemplar element.
      *  \param n The number of elements to initially create.
      *  \param value An element to copy.
      */
-    __host__
     explicit device_vector(size_type n, const value_type &value)
       :Parent(n,value) {}
+
+    /*! This constructor creates a \p device_vector with copies
+     *  of an exemplar element.
+     *  \param n The number of elements to initially create.
+     *  \param value An element to copy.
+     *  \param alloc The allocator to use by this device_vector.
+     */
+    explicit device_vector(size_type n, const value_type &value, const Alloc &alloc)
+      :Parent(n,value,alloc) {}
 
     /*! Copy constructor copies from an exemplar \p device_vector.
      *  \param v The \p device_vector to copy.
      */
-    __host__
     device_vector(const device_vector &v)
       :Parent(v) {}
+
+    /*! Copy constructor copies from an exemplar \p device_vector.
+     *  \param v The \p device_vector to copy.
+     *  \param alloc The allocator to use by this device_vector.
+     */
+    device_vector(const device_vector &v, const Alloc &alloc)
+      :Parent(v,alloc) {}
+
+  #if THRUST_CPP_DIALECT >= 2011
+    /*! Move constructor moves from another \p device_vector.
+     *  \param v The device_vector to move.
+     */
+    device_vector(device_vector &&v)
+      :Parent(std::move(v)) {}
+
+    /*! Move constructor moves from another \p device_vector.
+     *  \param v The device_vector to move.
+     *  \param alloc The allocator to use by this device_vector.
+     */
+    device_vector(device_vector &&v, const Alloc &alloc)
+      :Parent(std::move(v), alloc) {}
+  #endif // THRUST_CPP_DIALECT >= 2011
+
+    /*! Copy assign operator copies another \p device_vector with the same type.
+     *  \param v The \p device_vector to copy.
+     */
+    device_vector &operator=(const device_vector &v)
+    { Parent::operator=(v); return *this; }
+
+  #if THRUST_CPP_DIALECT >= 2011
+    /*! Move assign operator moves from another \p device_vector.
+     *  \param v The device_vector to move.
+     */
+     device_vector &operator=(device_vector &&v)
+     { Parent::operator=(std::move(v)); return *this; }
+  #endif // THRUST_CPP_DIALECT >= 2011
 
     /*! Copy constructor copies from an exemplar \p device_vector with different type.
      *  \param v The \p device_vector to copy.
      */
     template<typename OtherT, typename OtherAlloc>
-    __device__
-    device_vector(const device_vector<OtherT,OtherAlloc> &v)
+    explicit device_vector(const device_vector<OtherT,OtherAlloc> &v)
       :Parent(v) {}
 
     /*! Assign operator copies from an exemplar \p device_vector with different type.
      *  \param v The \p device_vector to copy.
      */
     template<typename OtherT, typename OtherAlloc>
-    __device__
     device_vector &operator=(const device_vector<OtherT,OtherAlloc> &v)
     { Parent::operator=(v); return *this; }
 
@@ -113,7 +171,6 @@ template<typename T, typename Alloc = thrust::device_malloc_allocator<T> >
      *  \param v The <tt>std::vector</tt> to copy.
      */
     template<typename OtherT, typename OtherAlloc>
-    __host__
     device_vector(const std::vector<OtherT,OtherAlloc> &v)
       :Parent(v) {}
 
@@ -121,23 +178,23 @@ template<typename T, typename Alloc = thrust::device_malloc_allocator<T> >
      *  \param v The <tt>std::vector</tt> to copy.
      */
     template<typename OtherT, typename OtherAlloc>
-    __host__
     device_vector &operator=(const std::vector<OtherT,OtherAlloc> &v)
     { Parent::operator=(v); return *this;}
 
-    /*! Copy constructor copies from an exemplar \p host_vector with possibly different type.
-     *  \param v The \p host_vector to copy.
+    /*! Copy construct from a \p vector_base whose element type is convertible
+     *  to \c T.
+     *
+     *  \param v The \p vector_base to copy.
      */
     template<typename OtherT, typename OtherAlloc>
-    __host__
-    device_vector(const host_vector<OtherT,OtherAlloc> &v);
+    device_vector(const detail::vector_base<OtherT,OtherAlloc> &v)
+      :Parent(v) {}
 
-    /*! Assign operator copies from an examplar \p host_vector.
-     *  \param v The \p host_vector to copy.
+    /*! Assign a \p vector_base whose element type is convertible to \c T.
+     *  \param v The \p vector_base to copy.
      */
     template<typename OtherT, typename OtherAlloc>
-    __host__
-    device_vector &operator=(const host_vector<OtherT,OtherAlloc> &v)
+    device_vector &operator=(const detail::vector_base<OtherT,OtherAlloc> &v)
     { Parent::operator=(v); return *this; }
 
     /*! This constructor builds a \p device_vector from a range.
@@ -145,9 +202,17 @@ template<typename T, typename Alloc = thrust::device_malloc_allocator<T> >
      *  \param last The end of the range.
      */
     template<typename InputIterator>
-    __host__
     device_vector(InputIterator first, InputIterator last)
       :Parent(first,last) {}
+
+    /*! This constructor builds a \p device_vector from a range.
+     *  \param first The beginning of the range.
+     *  \param last The end of the range.
+     *  \param alloc The allocator to use by this device_vector.
+     */
+    template<typename InputIterator>
+    device_vector(InputIterator first, InputIterator last, const Alloc &alloc)
+      :Parent(first,last,alloc) {}
 
 // declare these members for the purpose of Doxygenating them
 // they actually exist in a derived-from class
@@ -339,7 +404,7 @@ template<typename T, typename Alloc = thrust::device_malloc_allocator<T> >
      */
     void pop_back(void);
 
-    /*! This method swaps the contents of this vector_base with another vector.
+    /*! This method swaps the contents of this device_vector with another vector.
      *  \param v The vector with which to swap.
      */
     void swap(device_vector &v);
@@ -365,7 +430,7 @@ template<typename T, typename Alloc = thrust::device_malloc_allocator<T> >
      *  \param x The exemplar element to copy & insert.
      *  \return An iterator pointing to the newly inserted element.
      */
-    iterator insert(iterator position, const T &x); 
+    iterator insert(iterator position, const T &x);
 
     /*! This method inserts a copy of an exemplar value to a range at the
      *  specified position in this vector.
@@ -381,8 +446,8 @@ template<typename T, typename Alloc = thrust::device_malloc_allocator<T> >
      *  \param first The beginning of the range to copy.
      *  \param last  The end of the range to copy.
      *
-     *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator.html>Input Iterator</a>,
-     *                        and \p InputIterator's \c value_type is a model of <a href="http://www.sgi.com/tech/stl/Assignable.html">Assignable</a>.
+     *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/iterator/input_iterator>Input Iterator</a>,
+     *                        and \p InputIterator's \c value_type is a model of <a href="https://en.cppreference.com/w/cpp/named_req/CopyAssignable">Assignable</a>.
      */
     template<typename InputIterator>
     void insert(iterator position, InputIterator first, InputIterator last);
@@ -398,7 +463,7 @@ template<typename T, typename Alloc = thrust::device_malloc_allocator<T> >
      *  \param first The beginning of the range to copy.
      *  \param last  The end of the range to copy.
      *
-     *  \tparam InputIterator is a model of <a href="http://www.sgi.com/tech/stl/InputIterator">Input Iterator</a>.
+     *  \tparam InputIterator is a model of <a href="https://en.cppreference.com/w/cpp/named_req/InputIterator">Input Iterator</a>.
      */
     template<typename InputIterator>
     void assign(InputIterator first, InputIterator last);
@@ -408,13 +473,19 @@ template<typename T, typename Alloc = thrust::device_malloc_allocator<T> >
      */
     allocator_type get_allocator(void) const;
 #endif // end doxygen-only members
-}; // end device_vector
+};
 
-/*! \}
+/*! Exchanges the values of two vectors.
+ *  \p x The first \p device_vector of interest.
+ *  \p y The second \p device_vector of interest.
+ */
+template<typename T, typename Alloc>
+  void swap(device_vector<T,Alloc> &a, device_vector<T,Alloc> &b)
+{
+  a.swap(b);
+}
+
+/*! \} // containres
  */
 
-} // end thrust
-
-#include <thrust/detail/device_vector.inl>
-
-
+THRUST_NAMESPACE_END

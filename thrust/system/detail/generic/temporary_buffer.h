@@ -21,8 +21,7 @@
 #include <thrust/pair.h>
 #include <thrust/detail/pointer.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -37,6 +36,13 @@ __host__ __device__
     get_temporary_buffer(thrust::execution_policy<DerivedPolicy> &exec, typename thrust::pointer<T,DerivedPolicy>::difference_type n);
 
 
+__thrust_exec_check_disable__
+template<typename DerivedPolicy, typename Pointer>
+__host__ __device__
+  void return_temporary_buffer(thrust::execution_policy<DerivedPolicy> &exec, Pointer p, std::ptrdiff_t n);
+
+
+__thrust_exec_check_disable__
 template<typename DerivedPolicy, typename Pointer>
 __host__ __device__
   void return_temporary_buffer(thrust::execution_policy<DerivedPolicy> &exec, Pointer p);
@@ -45,7 +51,7 @@ __host__ __device__
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/detail/generic/temporary_buffer.inl>
 

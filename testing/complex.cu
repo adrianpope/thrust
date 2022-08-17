@@ -1,6 +1,8 @@
 #include <unittest/unittest.h>
 
 #include <thrust/complex.h>
+#include <thrust/detail/config.h>
+
 #include <complex>
 #include <iostream>
 #include <sstream>
@@ -10,6 +12,28 @@
    That is tested in a separate program (complex_accuracy.cpp) which requires mpfr, 
    and takes a lot of time to run.   
  */
+
+template<typename T>
+struct TestComplexSizeAndAlignment
+{
+  void operator()()
+  {
+    THRUST_STATIC_ASSERT(
+      sizeof(thrust::complex<T>) == sizeof(T) * 2
+    );
+    THRUST_STATIC_ASSERT(
+      THRUST_ALIGNOF(thrust::complex<T>) == THRUST_ALIGNOF(T) * 2
+    );
+
+    THRUST_STATIC_ASSERT(
+      sizeof(thrust::complex<T const>) == sizeof(T) * 2
+    );
+    THRUST_STATIC_ASSERT(
+      THRUST_ALIGNOF(thrust::complex<T const>) == THRUST_ALIGNOF(T) * 2
+    );
+  }
+};
+SimpleUnitTest<TestComplexSizeAndAlignment, FloatingPointTypes> TestComplexSizeAndAlignmentInstance;
 
 template<typename T>
 struct TestComplexConstructors
@@ -30,16 +54,16 @@ struct TestComplexConstructors
     a = thrust::complex<T>();
     ASSERT_ALMOST_EQUAL(a,std::complex<T>(0));
     
-    a = thrust::complex<T>(thrust::complex<float>(data[0],data[1]));
+    a = thrust::complex<T>(thrust::complex<float>(static_cast<float>(data[0]),static_cast<float>(data[1])));
     ASSERT_ALMOST_EQUAL(a,b);
     
-    a = thrust::complex<T>(thrust::complex<double>(data[0],data[1]));
+    a = thrust::complex<T>(thrust::complex<double>(static_cast<double>(data[0]),static_cast<double>(data[1])));
     ASSERT_ALMOST_EQUAL(a,b);
     
-    a = thrust::complex<T>(std::complex<float>(data[0],data[1]));
+    a = thrust::complex<T>(std::complex<float>(static_cast<float>(data[0]),static_cast<float>(data[1])));
     ASSERT_ALMOST_EQUAL(a,b);
     
-    a = thrust::complex<T>(std::complex<double>(data[0],data[1]));
+    a = thrust::complex<T>(std::complex<double>(static_cast<double>(data[0]),static_cast<double>(data[1])));
     ASSERT_ALMOST_EQUAL(a,b);
   }
 };
@@ -251,7 +275,7 @@ struct TestComplexTrigonometricFunctions
     ASSERT_ALMOST_EQUAL(sinh(a),sinh(c));
     ASSERT_ALMOST_EQUAL(tanh(a),tanh(c));
 
-#if __cplusplus >= 201103L
+#if THRUST_CPP_DIALECT >= 2011
 
     ASSERT_ALMOST_EQUAL(acos(a),acos(c));
     ASSERT_ALMOST_EQUAL(asin(a),asin(c));
@@ -282,5 +306,29 @@ struct TestComplexStreamOperators
     ASSERT_ALMOST_EQUAL(a,b);
   }
 };
-
 SimpleUnitTest<TestComplexStreamOperators, FloatingPointTypes> TestComplexStreamOperatorsInstance;
+
+#if THRUST_CPP_DIALECT >= 2011
+template<typename T>
+struct TestComplexStdComplexDeviceInterop
+{
+  void operator()()
+  {
+    thrust::host_vector<T> data = unittest::random_samples<T>(6);
+    std::vector<std::complex<T> > vec(10);
+    vec[0] = std::complex<T>(data[0], data[1]);
+    vec[1] = std::complex<T>(data[2], data[3]);
+    vec[2] = std::complex<T>(data[4], data[5]);
+
+    thrust::device_vector<thrust::complex<T> > device_vec = vec;
+    ASSERT_ALMOST_EQUAL(vec[0].real(), thrust::complex<T>(device_vec[0]).real());
+    ASSERT_ALMOST_EQUAL(vec[0].imag(), thrust::complex<T>(device_vec[0]).imag());
+    ASSERT_ALMOST_EQUAL(vec[1].real(), thrust::complex<T>(device_vec[1]).real());
+    ASSERT_ALMOST_EQUAL(vec[1].imag(), thrust::complex<T>(device_vec[1]).imag());
+    ASSERT_ALMOST_EQUAL(vec[2].real(), thrust::complex<T>(device_vec[2]).real());
+    ASSERT_ALMOST_EQUAL(vec[2].imag(), thrust::complex<T>(device_vec[2]).imag());
+  }
+};
+SimpleUnitTest<TestComplexStdComplexDeviceInterop, FloatingPointTypes> TestComplexStdComplexDeviceInteropInstance;
+#endif
+

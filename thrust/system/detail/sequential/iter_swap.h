@@ -21,8 +21,7 @@
 #include <thrust/detail/raw_pointer_cast.h>
 #include <thrust/detail/swap.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -31,9 +30,9 @@ namespace sequential
 {
 
 
-template<typename Pointer1, typename Pointer2>
+template<typename DerivedPolicy, typename Pointer1, typename Pointer2>
 __host__ __device__
-  void iter_swap(tag, Pointer1 a, Pointer2 b)
+  void iter_swap(sequential::execution_policy<DerivedPolicy> &, Pointer1 a, Pointer2 b)
 {
   using thrust::swap;
   swap(*thrust::raw_pointer_cast(a), *thrust::raw_pointer_cast(b));
@@ -43,5 +42,5 @@ __host__ __device__
 } // end sequential
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

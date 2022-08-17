@@ -17,11 +17,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/system/cuda/error.h>
 #include <thrust/system/cuda/detail/guarded_cuda_runtime_api.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -39,7 +40,7 @@ error_condition make_error_condition(cuda::errc::errc_t e)
 } // end make_error_condition()
 
 
-namespace cuda
+namespace cuda_cub
 {
 
 namespace detail
@@ -59,9 +60,12 @@ class cuda_error_category
 
     inline virtual std::string message(int ev) const
     {
-      static const std::string unknown_err("Unknown error");
-      const char *c_str = ::cudaGetErrorString(static_cast<cudaError_t>(ev));
-      return c_str ? std::string(c_str) : unknown_err;
+      char const* const unknown_str  = "unknown error";
+      char const* const unknown_name = "cudaErrorUnknown";
+      char const* c_str  = ::cudaGetErrorString(static_cast<cudaError_t>(ev));
+      char const* c_name = ::cudaGetErrorName(static_cast<cudaError_t>(ev));
+      return std::string(c_name ? c_name : unknown_name)
+           + ": " + (c_str ? c_str : unknown_str);
     }
 
     inline virtual error_condition default_error_condition(int ev) const
@@ -79,17 +83,17 @@ class cuda_error_category
 
 } // end detail
 
-} // end namespace cuda
+} // end namespace cuda_cub
 
 
 const error_category &cuda_category(void)
 {
-  static const cuda::detail::cuda_error_category result;
+  static const thrust::system::cuda_cub::detail::cuda_error_category result;
   return result;
 }
 
 
 } // end namespace system
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
